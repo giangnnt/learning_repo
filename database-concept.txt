@@ -1,0 +1,395 @@
+What → Why → Where → When → Who → How → Limit → Compare → Use case
+
+Chapter 1
+
+1.3.1 Data Models
+- Overview
+What: 
++ ways to describe data relationships, data semantics, consistency and constrains, data properties
++ blueprint when design database
+When:
++ start to design database system
+
+- 4 Categories: 
+Relational Model: 
++ represent data and relationship among data.
++ table = relation, row = tuple, column = attribute
++ relational model is record base model
++ record base model: data organize in to 'records', record have a fix structure, database contains many record types
+Entity Relationship Model:
++ collection of entities (things or objects) in real world
++ entities are distinguishable from others
+Semi-structured Data Model:
++ permit that individual data items of same type have different set of attributes
+Object-Based Data Model: integrated in relational db
+
+- procedure:
++ collection of instructions
++ focus on process, not output
+- function:
++ logic component that: transform, mapping Input -> Output
++ no side effect
+- reason database separate function and procedure
++ pure function (no side effect) suitable for: optimize query, execution plan and cache data. Cant optimize if function can cause side effect (for example to reorganize query, insert, update, delete, will cause faulty data if not organize in correct order)
++ pure function dont have transaction (reorganize transaction might break ACID)
++ procedure permit to have side effect and transaction control, because it will not be reorganize (cannot be optimize by optimizer as expression)
+
+
+1.3.3 Data Abstraction
+There are 3 levels of abstraction:
+- Physical level
++ the lowest level of abstraction, its describe 'HOW' data stored on physical devices
+- Logical level
++ next-higher level of abstraction describe 'WHAT' is stored in database, relationship between these data
+- View level
++ highest level of abstraction show only necessary data for user
++ system may provide many views for the same database
+
+
+1.3.4 Instances and Schemas
+- Istance: is a collection of information stored in database at particular moment
+- Schema: overall design of the database
++ there physical schema, logical schema and view level schema (subschemas)
+
+1.4 Database Languages
+Data-definition language (DDL) -> specify database schema
+Data-manipulation language (DML) -> express database queries and updates
+
+
+1.4.1 Data-definition language
+DDL provides facility to determine constraints of data. But constrain might costly to test so its only provide constrain can be easy to test (minimal overhead)
+- Domain constraints 
++ include: Data types, Check, NULL, default value
++ basic kind of constraint, easy to determine
+- Referential integrity
++ ensure value in one relation appear in another relation
++ prevent modification cause violation in referential integrity
+- Authorization
++ Can assign the user to all, none or a combination of CRUD operation
+- Data dictionary is a special table, contain metadata of other data table, could only access via system (not regular user)
+
+
+1.4.3 Data-manipulation language
+- DML is a programming language that help user to access, manipulate data stored in the database: Retrieval, Insertion, Deletion and Modification
+- There are 2 types of DML:
++ Procedural DMLs:
+What: user point out "HOW" to get the expected output
+When: logic depend on instruction order,  complicated condition, express loop and branching
+Why: when raw SQL cant handle the complicated logic, process data row by row
++ Declarative DMLs:
+What: user focus on "WHAT", not "HOW" to get the expected output(data)
+When: when logic can be written in declarative style, highly optimize performance
+Why: remain abstraction, distinct from how data is actually stored in hardware, automatically optimize by DBMS, reduce error
+
+
+1.4.4 The SQL Data-Manipulation Language
+- SQL query language is non-procedural
+- Takes several tables and output 1
+
+
+1.4.5 Database access from application programs
+- SQL is not so powerful so Application programs help database with communication over network ,action from user (user input, user output)
+- To access database, DML need to be sent from host to the database, through application-program interface
+- The reason for calling api as set of procedures is that api contains function (procedures) to do something: connect() -> execute() -> close()
+
+
+1.5 Database Design 
+1.6 Database Engine
+- Database system can be partitioned into modules, including: storage manager, query processor and transaction management component
+- The storage manager
++ Data move from disk is slow compare to CPU, its important that the database system organize, structure the data so as to minimize move data between disk and memory
+- The query processor
++ Allow users to obtain good performance while working at view level
++ Translate queries written in non-procedural at logical level into efficient sequence of operation at physical level
+- The transaction manager
++ Allow user to treat sequence of database access as if they were a single unit, happen entirely or not at all (atomic)
+
+
+1.6.1 Storage Manager
+Responsible with interaction between application program and file manager (low-level data store) 
+Storage manager components include: 
++ Authorization and integrity manager
++ Transaction manager
++ File manager
++ Buffer manager: responsible for fetching data from the disk into main memory, cache data in main memory...
+
+Several data structures implemented in the storage manager:
++ Data files: store the database
++ Data dictionary: store metadata about the structure of the database (schema)
++ Indices: provide fast access to data item (indexing)
+
+
+1.6.3 Transaction Management
+- Atomicity: transaction happen all or none
+- Consistency: correctness of the transaction
+- Durability: value must persist despite the possibility of system failure
+
+- During execution of transaction, it may necessary to allow inconsistency because nothing is really atomic (1 must happen before the other)
+
+Recovery manager ensure database stored the state before transaction executing, if transaction fail, the database roll back to the previous state (failure recovery)
+
+Transaction manager include concurrency-control manager and recovery manager
+
+
+1.8 Database Users and Administrators
+1.8.2 Database Administrator
+- A database administrator (DBA) can:
++ Schema definition
++ Storage structure and access-method definition: creating indexing
++ Schema and physical-organization modiﬁcation: update indexing, change schema
++ Granting of authorization for data access: grating authorization for user to access parts of database
++ Routine maintenance: backing up database, checking disk space, monitoring jobs
+
+Chapter 2
+
+2.1 Structure of Relational Databases
+- A relation (table) is a set of tuples; each tuple is an ordered list of values and corresponds to a row in the table.
+- The domain is set of permitted value for that attribute
+- A domain is considered atomic when its elements not divisible, for ex: address can divide to house number, road, city...
+- But more important is how we use the domain, don't divide domain too small, for ex: phone number divide to single unit number...
+- Null value signifies the missing, absent of value
+- We need to consider between strict structure and efficiencies (pros ans cons)
+
+
+2.2 Database Schema
+- Relation correspond to instance of an object while Relation schema correspond to the type of the object its self
+
+2.3 Keys
+- Keys identify tuple uniquely (allow tuple to have same value for all attributes except key)
+- Super key is a set of attribute, allow identify tuple uniquely
+- Candidate key is super key that don't exist subset also a super key (minimal super key)
+- Primary key is a chosen candidate key
+- Two individual tuple are prohibited from having the same key attribute at the same time (primary key constraints)
+
+- Foreign key A for each tuple in Relation r1 must also be the value of B (primary key) for some tuple in r2 (foreign-key constraint)
+
+- Foreign Key Constraints is a special case of Referential Integrity Constraint, where referred attribute is a primary key
+- Also note that only FK Constraint is support by dbms
+
+
+2.4 Schema Diagrams
+2.5 Relational Query Languages
+- Query language is language user use to request data from the database
+- Query language usually on a higher level than standard programming language
+- Can be categorized as: Imperative, Functional, Declarative
+
+- Imperative query language: user instruct the system to perform specific sequence of operation, in order to achieve the result
+- Functional query language: can be call a subset of imperative (procedure based) language, include function call which is side effect free to achieve result
+- Declarative query language: in the other hand, achieve result without the specific instruction, user focus on "WHAT" will be the result and the system DBMS will handle "HOW" result will be obtained
+
+- Relational Algebra will classified as functional language
+- Tuple relational calculus and domain relational calculus are classified as declarative
+
+
+2.6 Relational Algebra
+- Relational Algebra is a collection of operation, which take 1 or many Relation to produce a new Relation (for simple, math form of query language)
+- Its operation can be Unary, Binary
+- Database don't allow user to use relational algebra as query language
+
+
+2.6.1 The Select Operation (Sigma)
+- The "SELECT" select tuples that satisfy given 
+- σdept name = “Physics” ∧ salary>90000 (instructor)
+
+
+2.6.2 The Project Operation (Pi)
+- mapping value input -> output like a function
+- The "PROJECT" produce new relation with certain attributes left out
+- Any duplicate row is eliminated (use "DISTINCT" in SQL)
+- ΠID, name, salary (instructor)
+
+
+2.6.3 Composition of Relational Operations
+- result of Relational Operation is an another Relation
+- Πname (σdept name = “Physics” (instructor))
+- We can, instead given a name as argument of uprojection, we use a relation that evaluate to a relation
+- Relational Algebra operations can be composed into a Relational Algebra expression by arithmetic operations (+,-,*,/)
+
+
+2.6.4 The Cartesian Product Operation (Cross)
+- (a1,b1), (a1,b2), (a2,b1), (a2,b2) from Cartesian product in math evaluate to row (tuple) in database
+- r = r1 x r2, r in constructed by each possible pair of relation 1 to relation 2
+- if r1 have n rows and r2 have m rows, r will have m * n rows
+
+
+2.6.5 The Join Operation
+- σinstructor.ID = teaches.ID (instructor × teaches)
+- represent a subset of Cartesian product, satisfies some "Predicate" (a boolean condition) 
+- r ⋈θ s = σθ (r × s) 
+- r and s are relation, θ is predicate, ⋈ is join operation
+
+
+2.6.6 Set Operations
+- We say that relation is equivalent to function in math, because both is a collection of tuple
+
+- Πcourse id (σsemester = “Fall” ∧ year=2017 (section)) ∪ Πcourse id (σsemester = “Spring” ∧ year=2018 (section))
+- The Union (∪) merge two relation into 1 relation vertically
+- To Union relations, realtion must be "compatible" which conditions are:
++ relatations must have the same "arity" (in math, arity refer to number of argument of a function)
++ the type of ith attribute of both relation must be the same for each i
+
+- the "Intersect" (∩) produce a relation containing tuple that appear in r1 as well in r2
+
+- the "Set-difference" (−) produce a relation containing tuple that appear in 1 relation but not the other
+
+
+2.6.7 The Assignment Operation
+- Assign result relation into temp relation variable. denoted by (←), work like assignment in programming language
+- Allow query can be written in sequential, consisting of a series assignment (CTE, subquery)
+
+
+2.6.8 The Rename Operation (Rho)
+- ρx (E)
+- return the result of expression E in name x
+- A relation is considered a relational-algebra expression
+- ρx(A1 ,A2 ,…,An ) (E)
+- this form of rename operation can be used to give names to attributes in the results of relational algebra
+
+
+2.6.9 Equivalent Queries
+- There is often more than one way to write queries, those queries still output the same result. Those are called "Equivalent Queries"
+- Query optimizer look what result an expression computes and find efficient way of computing result
+- The "Algebraic structure" of relational algebra makes it easy to find efficient but equivalent alternative expressions
+
+
+3. Introduction to SQL
+3.2.1 Basic Types
+- char(n): fixed-length character string with user specified length n
+- varchar(n): variable-length character string with maximum length n
+- int: an integer (a finite subset of integers, machine dependent cpu architect, ram...) 
+- numeric(p,d): a fixed-point number with user-specified precision. the number consist of p digits (plus sign) and d digits are to the right of the decimal point
+- real, double precision: floating point, double precision floating point with machine dependent precision
+- float(n) floating-point number with precision of at least n digits (n is number of bit of mantissa)
+- Value = (-1)^S × 1.F × 2^(E - Bias)
+- S represent sign (+,-)
+- F represent the precision of the number
+- E is biased exponent
+- Bias = 2^(k-1) - 1  (k is the number of bit of exponent, -1 inside is for balance between positive and negative, -1 outside is except 0)
+
+- each ype include special value call "NULL", its indicate the absent of value
+- when compare char and varchar, may the database add extra space to varchar type
+
+- Unicode mapping between character -> code point (U+XXXX)
+- Encoding (UTF-8, 16, 32) translate code point -> bytes
+- ASCII is a subset of Unicode
+
+- nvarchar: allow to store unicode value
+
+
+3.2.2 Basic Schema Definition
+- primary-key: non-null and unique
+- foreign-key: must correspond to values of the primary key attributes of some tuple in referred relation
+- not null: exclude the null value from the domain of that attribure
+- alter table command is used to add attributes to an existing relation, all tuples in the relation are assigned null as the value for the new attribute
+- adding non null attribute without "DEFAULT" will usually fail
+
+
+3.3 Basic Structure of SQL Queries
+- duplicate elimination is time-consuming, but we can eliminate them by using "DISTINCT" keyword
+
+
+3.3.2 Queries  Multiple Relations
+
+select name, instructor.dept name, building
+from instructor, department
+where instructor.dept name= department.dept name;
+
+- above query represent joining two table, base on where clause, it can be cross join or inner join
+
+
+3.4 Additional Basic Operations
+Note 3.1
+- SQL standard define how many copy of each tuple in the output base on duplicate of each tuple in the input
+- To model this behavior, SQL use multi-set relational algebra
+- Multi-set relational algebra is defined as a set that contain duplicates.
+- If there are c1 copies of t1 in r1 and c2 copies of t2 in r2, there c1*c2 copies of t1.t2 in r1 x r2
+- Lower level representation of SQL queries perform query optimization and query evaluation base on relational-algebra
+
+
+3.4.2 String 
+- SQL standard specifies strings in a single quotes, for ex: 'Computer'
+- If in strings contain a quote, the quote can be represent by double quote, for ex: It’s right with 'It''s right'.
+- Strings evaluation is case sensitive, but some DBMS don't distinguish case sensitive (MySQL and SQL Server) but this behavior can be changed in the setting
+- % charater matches any substring
+- _ character matches any character
+- similar to quote, there also a way to express character '%', using \
+- for ex: 'ab\%cd%' -> 'ab%cd', 'ab\\cd' -> 'ab\cd' 
+
+
+3.4.4 Ordering the Display of Tuples
+- order by clause lists item in asc order
+- we can wrote instructor.ID= teaches.ID and dept name = 'Biology' -> (instructor.ID, dept name) = (teaches.ID, 'Biology');
+
+
+3.5 Set Operations
+- use union all union operation automatically eliminates duplicates
+- use union all if we want to retain all duplicates
+
+
+3.5.2 The Intersect Operation
+- intersect operation eliminated duplicate and similar to union, we can use intersect all to retain the duplicate
+- intersect is similar to join if its meet these condition:
++ use distict keyword
++ both join table have the same schema
++ join condition is the whole tuple
+
+
+3.5.3 The Except Operation
++ similar to above operation, except choose tuple that appear in r1 but not in r2, eliminate duplicate, use except all to retain duplicate
+
+
+3.6 Null Values
+- result of arithmetic expression (+, -, *, /) is null if one of the input is null
+- comparison to null treat as unknow
+- it's create a third logic, other than true and false
+- where clause only select true
+
+- and: The result of true and unknown is unknown, false and unknown is false, while
+unknown and unknown is unknown.
+- or: The result of true or unknown is true, false or unknown is unknown, while un-
+known or unknown is unknown.
+- not: The result of not unknown is unknown.
+
+- there is unknown and is not unknown to test if the result known or unknown
+- the null treatment in select distinct clause (null = null is true) is different from predicate (null = null is unknown)
+- this approach also used in union, intersect and except
+
+
+3.7 Aggregate Functions
+- aggregate functions take a collection (a set or multiset) of values as input and return a single value. 
+- there are five standard build-in aggregate functions: avg, min, max, sum, count
+- sum and avg only operate on numbers
+- we can use distinct keyword in aggregation for ex: count(distinct ID)
+- only attributes that appears in  the select statement without being aggregated are presented in the group by clause
+
+
+3.7.3 The Having Clause
+- Having applies to each group constructed by the group by clause and after group have been formed
+- we can use aggregate function in having clause cause group have been formed
+- any attribute appear in having clause without present in aggregate function or group by clause in erroneous
+
+- the predicate in where clause happen first, the place the result in to group by clause
+- if the group by is absent, the whole relation is treated as one big group
+- having clause applied to each group, if group not satisfy the having clause, it is removed
+
+
+3.7.4 Aggression with Null and Boolean Values
+- "Partial information is still information": dù thiếu 1 phần nhưng thông tin vẫn là thông tin
+- all aggregate function except count(*) ignore null values
+- count on empty set return 0
+- other aggregation function return null 
+
+some: or(dis junction) on set of boolean value
+every: and(conjunction) on set of boolean value
+
+
+3.8 Nested Sub queries 
+- sub query is a select-from-where expression that is nested within another query
+
+
+3.8.1 Set Membership
+3.8.3 Test for Empty Relations
+- correlated sub query is a query that depend on the outer query to use as parameter for where, select of inner query
+
+
+3.8.5 Subqueries on the From 

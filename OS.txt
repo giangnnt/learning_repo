@@ -1,0 +1,35 @@
+What → Why → Where → When → Who → How → Limit → Compare → Use case
+1.2.1 Interrupts
+Interrupts
+- What: is a mechanism to tell the CPU stop what it is doing and jump to other instruction at fixed location
+- Why: 
++ to inform the CPU that some event is happening (keyboard, mouse input, disk write complete)
++ CPU do not wait for the event to happening, it can go do other things and comeback when device is ready
+- How: 
++ hardware sending signal to CPU through the system bus
++ CPU save context of current computation
++ CPU then jump to fixed location
++ fixed location contains interrupt service routine and start executing
++ after completed, CPU then resume the interrupted computation
+- Limit: interrupt cause overhead, so it have to carefully implement as large amount of interrupt can happen in short amount of time, cause the delay in computation
+- Scheduling interrupt are hard to implement. Because interrupt cause overhead and some interrupt are more important than other, such as critical memory error(nonmaskable interrupt) and device to request service (maskable interrupt), we have to consider priority levels
+
+1.2.2 Storage structure
+- RAM: random-access memory
+- DRAM: dynamic RAM
+- bootstrap program: first program to run when computer start
+- EEPROM: electrically erasable programmable read-only memory
+- HDD: hard disk drive
+- NVM: nonvolatile memory
+- Instruction-execution cycle contains 4 steps:
++ fetch instruction from memory to register
++ decode the instruction
++ execute the instruction, such as load data from memory or jump to specific location 
++ store result back in memory
+
+1.2.3 I/O structure
+DMA (direct memory access)
+- What
+- Why
+- How
+
