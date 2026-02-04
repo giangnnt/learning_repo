@@ -340,7 +340,7 @@ Note 3.1
 
 3.6 Null Values
 - result of arithmetic expression (+, -, *, /) is null if one of the input is null
-- comparison to null treat as unknow
+- comparison to null treat as unknown
 - it's create a third logic, other than true and false
 - where clause only select true
 
@@ -459,4 +459,72 @@ Chapter 4: Intermediate SQL
 
 
 4.1.4 Join Types and 
-4.2 
+4.2 Views
+- Views is used when there is a security concern, or using to visualize higher layer of business instead of table
+- the view relation is recomputed whenever we use it
+
+
+4.2.3 Materialized Views
+- materialized views: certain database systems allow view relation to be stored instead of recomputed each time being use
+- the action of keeping the materialized view update to date is call view maintenance
+- view maintenance behave differently on different dbms, some will actively recompute the view if relation being change, some lazily recompute, other depend on how db admins configuring
+- db admin must consider between the benefit of pre-compute view and its storage cost, overhead for updates
+
+
+4.2.4 Update of a View
+- modification on view are not permitted on view relations, except limited case due to data inconsistency problems.
+- view can be update-able (but the still problems) when its meet these constraint
++ from clause use 1 relation
++ select clause don't contain expression, aggregates, distinct
++ attribute listed in select are null-able, and not part of primary key
++ query don't contain group by or having clause
+- there is an option that view update is reject if tuple inserted not satisfy the where clause conditions
+- more preferable way to modify a view is to use "trigger"
+
+
+4.3 Transactions
+- transaction: contain instruction and begin implicitly when sql statement execute
+- transaction must end with: commit work or rollback work
+- in case of power outage or system crash, rollback occurs when the system restarts
+- if programs terminates without execute any command, its either committed or rollback depend on the implementation
+- in many dbms implementation, each sql statement is taken to be a transaction on its own, auto commit of individual sql statement must be turn off if there are many sql statement will executed at given time
+
+
+4.4 Integrity Constraints
+- integrity constraints are usually identified as part of db schema when its created as create table command being used
+- it can also be defied in alter table add constraint command
+
+
+4.4.1 Constraints on Single Relation
+4.4.3 Unique Constraint
+- unique says that no two tuple have the same value on unique attribute
+- null = some value is not true
+
+
+4.4.4 The Check Clause
+- a check clause is satisfied if its not false, so unknown is evaluate as valid in check
+- when a foreign key is violated, instead of rejecting the action, system decide what to do base on associated clause:
++ on delete cascade: also delete tuples that referred to the deleted one
++ on update cascade: also update tuples that referred to the updated one
++ we can replace cascade with "set null" or "set default" for different behavior
+
+
+4.4.5 Referential Integrity 
+- by default, foreign key referenced to primary key
+- we can also specified attribure which is refferred to, as long as the the attribute is unique and not null
+- we eventually can make foreign key reference a non candidate key(not unique, null allowed), but its not recommended and not supported by many dbms
+- forreign key and referenced key must compatible (same domain, same number of attribute)
+- if cascading can not be handled(self referenced), the action will be rejected
+- attributes of foreign key can be null, if any attribute is null, the foreign key constraint is not enforced (null is not equal to any value, so it can't violate the constraint)
+
+
+4.4.6 Assigning Names to Constraints
+4.4.7 Integrity Constraints Violation During Transaction
+- integrity constraint is checked at the end of the transaction, not during the transaction
+- so its possible that during the transaction, the constraint is violated temporarily, but at the end of the transaction, the constraint is satisfied again
+- initial deferred: constraint is checked at the end of transaction
+- deferable: constraint can be set to immediate or deferred mode at the start of transaction
+- we can walk around the constraint check by using null value if the attribute permit null
+
+
+4.4.8 Complex Check Conditions and Assetions
