@@ -528,3 +528,43 @@ Chapter 4: Intermediate SQL
 
 
 4.4.8 Complex Check Conditions and Assetions
+- not many dbms support subquery in check condition
+- if there is subquery in check condition, its evaluated each time the target relation and refferred relation is modified
+- assertion is a general condition that involve more than one relation
+- not many dbms support assertion due to its complexity and cost to evaluate
+
+
+4.5 SQL Data Types and Schemas
+4.5.1 Date and Time Types
+- date: store date value (year, month, day)
+- time: store time value (hour, minute, second, fraction of second, time zone)
+- timestamp: store both date and time value
+- sql define functions to get current date and time: current_date, current_time, current_timestamp
+- interval: represent a duration of time (difference between 2 date/time/timestamp)
+
+
+4.5.2 Type Conversion and Formatting Functions
+- implicit conversion: automatic conversion between compatible data type
+- explicit conversion: user use cast operator to convert data type
+- formatting function: convert data to string with certain format
+- coalease indicate that all the value in the argument must be the same type
+
+
+4.5.3 Default Values
+4.5.4 large Object Types
+- DBMS support clob, blob for large object storage (photo, video, document...)
+- lob: large object
+- it's costly to process large object, so dbms usually store lob in separate location and only store pointer in the relation
+
+
+- temporal validity
++ there is a need to keep track of time period that a fact is true in the real world
++ the solution is to add 2 attribute: valid time start and valid time end to the relation
++ but this approach also came with problems: the same tuple (same primary key) can appear multiple time with overlapping time period
++ the solution for postgres is to use EXCLUDE constraint to prevent overlapping time period for the same primary key
+
+
+4.5.5 User -Defined Types
+- At the system level, some field are just the same (for ex: phone number, id number...), but at the logical level, they have different meaning
+- user-defined type help to distinguish those field at the logical level 
+- user-defined type also help to prevent accidental mix-up between those field at the system level
