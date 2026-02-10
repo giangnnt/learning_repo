@@ -568,3 +568,57 @@ Chapter 4: Intermediate SQL
 - At the system level, some field are just the same (for ex: phone number, id number...), but at the logical level, they have different meaning
 - user-defined type help to distinguish those field at the logical level 
 - user-defined type also help to prevent accidental mix-up between those field at the system level
+- we can create domain by "Create Domain" command
+- type: define how data is stored
+- domain: define constrain (range of valid values) on top of type
+
+
+4.5.6 Generating Unique Key Values
+- when the always option is used, user cannot specify value for the attribute during insertion, the system will automatically generate value
+
+
+4.5.7 Create Table Expressions
+- create table like: create a new table with the same structure as an existing table
+- create table as: create a new table with the structure and data from the result of a select query
+
+
+4.5.8 Schemas, Catalogs and Environments
+4.6 Index Definition in SQL
+- index is a data structure that improve the speed of data retrieval operation on a database table at the cost of additional writes and storage space to maintain the index data structure
+- create index tradeoff between read and write performance, space cost
+- when submit a sql query that can benefit from index, the query optimizer will choose to use the index to speed up data retrieval
+- the "benefit" is refer to the cost of using index is lower than cost of scanning the whole table
+
+
+4.7 Authorization
+- Authorization on data include: select, insert, update, delete. These are called privileges
+4.7.1 Granting and Revoking Privileges
+- A user who creates a relation automatically have all privileges on that relation
+4.7.2 Roles
+- role is a named group of related privileges
+- role help to manage authorization when there are many users
+
+4.7.3 Authorization on Views
+- authorization on view is similar to relation
+- it is useful when we want to restrict user access to certain attribute or tuple in the relation
+- user create view does not receive all privileges on that view
+- the excecute privilege is granted on function or procedure
+- function and procedure have all the privilege that the creator have
+- if function definition contain sql security invoker clause, the function will have the privilege of the user who call the function instead of the creator 
+- there are two type of sql security: invoker and definer
+- invoker: function run with the privilege of the user who call the function
+- definer: function run with the privilege of the user who create the function
+
+
+4.7.4 Authorization on Schemas
+4.7.5 Transfer of Privileges
+- The creattor of a relation/view/role holds all privileges on that object, including the privilege to grant those privileges to other users
+- User have privilege if and only if there is a line between root (DBA) to that user in the privilege graph
+- the restrict keyword is specified in order to prevent cascading revoke of privilege
+- we can use granted by role to indicate that the privilege is granted by a role instead of user
+
+
+4.7.7 Row-Level Authorization
+- DBA create a function that generate predicate base on user
+- when user query the relation, it will automatically add the predicate to the where clause
+- this approach is call Row-Level Security (RLS)
