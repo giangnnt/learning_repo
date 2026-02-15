@@ -621,4 +621,36 @@ Chapter 4: Intermediate SQL
 4.7.7 Row-Level Authorization
 - DBA create a function that generate predicate base on user
 - when user query the relation, it will automatically add the predicate to the where clause
-- this approach is call Row-Level Security (RLS)
+- this approach is call Row-Level Security (RLS), in oracle call Virtual Private Database (VPD)
+
+
+Chapter 5: Advanced SQL
+5.1 Accessing SQL from a Programming Language
+- There are 2 approaches to access database from application program:
++ Dynamic SQL: sql statement is constructed as string at runtime and sent to the dbms for execution
++ Embedded SQL: sql statement is embedded in the host programming language and precompiled before compilation of the host program
+- Embedded SQL is more efficient than dynamic sql because sql statement is precompiled
+- Dynamic SQL is more flexible than embedded sql because sql statement can be constructed at runtime base on
+- sql return relation, so when we want to use the result in application program, we need to convert it to data structure in the programming language (for ex: array, list, map...)
+
+
+5.1.1 JDBC
+- JDBC stand for Java Database Connectivity
+- JDBC is an api that allow java program to access database
+- orm -> api -> driver -> database
+- JDBC dynamically load the driver class at runtime base on the database being used
+- Driver support protocol that translate JDBC api call to database specific protocol
+
+
+5.1.1.2 Shipping SQL Statements to the Database system
+ - statement object is used to invoke method that send sql statement to the database
+
+
+5.1.1.3 Exception and Resource Management
+5.1.1.4 Retrieving the Result of a Query
+- the Next() method of the ResultSet object is used to iterate through the result of a query
+- its test whether there is another row in the result
+
+
+5.2 Functions and Procedures
+- Functions are useful with specialized data types such as images and geometric objects
