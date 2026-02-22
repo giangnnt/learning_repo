@@ -702,3 +702,39 @@ Chapter 5: Advanced SQL
 
 
 5.3.3 When Not to Use Triggers
+- using on delete cascade instead of trigger to maintain referential integrity
+- using materialized view instead of trigger to maintain summary data
+- using replication feature of dbms instead of trigger to maintain data in sub table (delta table)
++ to sync data between two table, when table a is updated, we trigger to write a log to delta table, then we have a process that read the log, delete log table  and update table b, this approach is call "Change Data Capture" (CDC) 
+- when there is a used of backup and restore, trigger will be activated and cause data inconsistency, so we need to disable trigger before backup and restore, then enable it again after that
++ or we we can specify not for replication in the trigger definition, so it will not be activated during backup and restore
+- many trigger can be replaced by using procedure
+
+
+5.4 Recursive Queries
+- Transitive closure: the set of all nodes that can be reached from a given node in a graph
+- Recursive query: a query that refer to itself in its definition
+- Recursive query is useful for querying hierarchical data, such as organizational chart, bill of materials,
+
+
+5.4.1 Trasitive Closure Using Iteration (To be continued (closure))
+- in postgres, recursive with CTE is a bit different than in programming language
+- the result of first part of the query is reutrn to the cte then the second part use cte as input. Then the result is used as input for the second part of the query until there is no new tuple being added to the result
+
+- closure make sure that we can reach all node that can be reached from the given node, nothing more, nothing less
+- "create temporary table": create temp table that only available during the session, it will be automatically dropped at the end of the session
+- if there is two "create temporary table" running cocurrently, each get its own copy
+
+
+5.4.2 Recursion in SQL
+- recursive view must define a relation that is "union" of 2 relation:
++ base query
++ recursive query
+- the flow is understood as follow:
++ first, the base query is evaluated and its result is stored in the view relation
++ then, the recursive query is evaluated using the view relation as input, and its result is added to the view relation
++ this process is repeated until no new tuple is added to the view 
++ fix point: the point at which the view relation does not change anymore, so the recursion can stop
+
+- the recursive query must be monotonic:
++ result of recursive query must be a superset of the input relation: if r1 is superset of r2 => recursive query result on r1 is superset of recursive query result on r2
