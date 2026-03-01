@@ -726,7 +726,7 @@ Chapter 5: Advanced SQL
 - if there is two "create temporary table" running cocurrently, each get its own copy
 
 
-5.4.2 Recursion in SQL
+5.4.2 Recursion in SQL (to be continued (Fixed-point Theory))
 - recursive view must define a relation that is "union" of 2 relation:
 + base query
 + recursive query
@@ -738,3 +738,32 @@ Chapter 5: Advanced SQL
 
 - the recursive query must be monotonic:
 + result of recursive query must be a superset of the input relation: if r1 is superset of r2 => recursive query result on r1 is superset of recursive query result on r2
+
+- because recursive query depend on the previous result, it can not use non-monotonic operation, for ex:
++ aggregate function: because aggregate function is not monotonic, it can produce result that shrink when the input relation grow
++ not exist
++ except 
+
+
+5.5 Advanced Aggregation Features
+5.5.1 Ranking
+- in postgres, null value is treated as the highest value
+- using nulls first or nulls last to change the default behavior of null value in order to treat it as the lowest value
+- rank() reset to 1 for each partition
+- ranking apply after group by
+
+- percent rank() is defined as (rank() - 1) / (number of tuple in the partition - 1), so it return a value between 0 and 1, inclusive
++ it represent the relative distance of position of the tuple in the partition, compare to the start and the end -> thats why its domain is [0,1]
+
+- cume dist() is defined as (rank() / number of tuple in the partition)
++ it represent the relative position of current tuple compare to how many tuple its already pass in the partition, compare to the total number of tuple in the partition -> thats why its domain is (0,1] (include the first tuple)
+
+- ntile(n) devide the partition into n group, and assign a number to each tuple to indicate which group it belong to if number of tuple in the partition is not divisible by n, its priority to assign more tuple to the higher group
+
+
+5.5.2 Windowning
+- windowning is different from partitioning, because it does not divide the relation into group, but it define a "window" of tuples, the window is slide through the relation, and the aggregate function is applied to the tuples in the window
+- original windowning compute aggregate base on physical tuple, the window can enxpand and shrink as it slide through the relation
+- use "unbound" keyword to define window that start from the first tuple or end at the last tuple
+- use "preceding" and "following" keyword to define window that start from the current tuple and expand to the preceding or following tuple
+- use "range" keyword to define window take value of the current tuple (not physical tuple) as reference 
