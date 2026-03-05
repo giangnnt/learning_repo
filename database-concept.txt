@@ -767,3 +767,35 @@ Chapter 5: Advanced SQL
 - use "unbound" keyword to define window that start from the first tuple or end at the last tuple
 - use "preceding" and "following" keyword to define window that start from the current tuple and expand to the preceding or following tuple
 - use "range" keyword to define window take value of the current tuple (not physical tuple) as reference 
+
+
+5.5.3 Pivoting
+- pivoting is a technique to transform rows value into columns, it is useful for reporting and data visualization
+
+
+5.5.4 Rollup and Cube (to be continued (identity element))
+- rollup is a extension of group by that produce subtotals and grand total in the result
+- its create many group by using the same group by attribute, but with different level of aggregation
+- cube is a extension of rollup that produce subtotals for all combination of group by attribute
+- use "grouping set" to specify which combination of group by attribute to be included in the result
+- grouping() function is used to determine whether a tuple in the result of grouping (1) or part of the original relation (0)l
+
+
+Part 2: Database Design
+6.1 Overview of the Design Process
+6.1.1 Design Phases
+- initial phase: interact wih domain expert to understand the requirement and the domain. 
++ the outcome is specification of user requirement
+- conceptual design phase: translate user requirement into conceptual schema. It should provide a detailed overview of the enterprise (detail of bussiness, overview of the technical aspect)
++ entity relationship model should contain the following: entites, their relationship and constraints 
++ the outcome is ERD (Entity Relationship Diagram): a graphical representation of the conceptual schema
++ focus on describing the data and its relationship, not on how to implement it in database
+- specification of functional requirement phase: describe kinds of operation (transaction) that will be performed. Ensure the schema can support the required operation on data
+- logical design phase: translate the conceptual schema into implementation data model (a genetal logical structure, use to talk to computer, to manipulate data by sql statement)
++ relational model is the most common logical design: it use relation (table) to represent entity and relationship, and use attribute (column) to represent property of entity and relationship
+
+
+6.1.2 Design Alternative
+- in design database schema, we must avoid two pitfalls:
++ redundancy: the same information is stored in more than one place, which can lead to inconsistency and update anomaly
++ incompleteness: the schema does not capture all the necessary information, which can lead to loss of information and inability to support required operation
