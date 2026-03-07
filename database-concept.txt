@@ -799,3 +799,46 @@ Part 2: Database Design
 - in design database schema, we must avoid two pitfalls:
 + redundancy: the same information is stored in more than one place, which can lead to inconsistency and update anomaly
 + incompleteness: the schema does not capture all the necessary information, which can lead to loss of information and inability to support required operation
+
+
+6.2.1 Entity Sets
+- entity: a thing or object in the real world that is distinguishable from other objects (for ex: student a, student b, course a, course b...)
+- entity set: a collection of entity (abstract, not refer to paticular entities) that share the same attributes (for ex: student, course...)
+- extension of an entity set: actual collection of entites belonging to the entity set
+- enity set: represent by a rectangle, with the name of the entity set inside
+re
+
+
+6.2.2 Relationship Sets
+- relationship set: represent by a diamond, with the name of the relationship set inside
+- relationship: an association among two or more entities (for ex: student a take course a, student b take course b...)
+- relationship set: a collection of relationship (abstract, not refer to particular relationship) that share
+- relationship instance: actual collection of relationship belonging to the relationship set
+- theoreticaly, relationship set is a subset of the cartesian product of the entity set that participate in the relationship
+- recursive relationship set: a entity paticipate in the relationship more than once (for ex: employee a is the manager of employee b, employee b is the manager of employee c...). In this case we need to use role name to distinguish the different participation of the same entity set in the relationship
+- descriptive attribute: an attribute that describe the relationship itself, not the participating entity (for ex: grade in the relationship "take" between student and course)
+- attribute of relationship set is represented by an undevided rectangle, link with a dashed line to the relationship set
+- attrubutes of entity should only appear on the first time the entity appear in the ERD
+- it is possible for the same entities sets to have more than one relationship set
+- problems: if we wish students can have multiple grade for the same course, we can consider to have grade as multivalued attribute 
+- binary relationship set: relationship set that involve only two entity set
+- ternary relationship set: relationship set that involve three entity set
+- value set or domain: is the set of possible value for an attribute, it can be specified by a set of value or by a data type (for ex: integer, string...)
+
+- attributes can be categorized into:
++ simple attribute: an attribute that cannot be divided into smaller subpart (for ex: name, age...)
++ composite attribute: an attribute that can be divided into smaller subpart (for ex: name can be divided into first name and last name)
++ single-valued attribute: an attribute that have a single value for a particular entity
++ multi-valued attribute: entity can have multiple value for an attribures(for ex: having multiple phone numbers) by using data type like array
++ derived attributes: the value of this attribute type can be calculated from other attribute, (for ex: age can be calculated from birth year and current year)
+
+
+6.4 Mapping Cardinalities
+- mapping cadinalities: express the number of entities to which another entity can be associated in a relationship set
+- there are: one to one, one to many, many to onem, many to many
++ undirected line between two entity set indicate this relation is many to many
++ directed line from a to b (a --> b) indicate b can have many a but a can only have one b
+
+- participation of E in relationship set R is said to be total if every entity in E in atleast one relationship R (for ex: every employee must be under one dept)
+- it is said to be partial if it is not necessary for every entity in E to paticipate in R 
+- we use double line to indicate total, and single line for partial
