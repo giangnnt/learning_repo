@@ -839,6 +839,48 @@ re
 + undirected line between two entity set indicate this relation is many to many
 + directed line from a to b (a --> b) indicate b can have many a but a can only have one b
 
-- participation of E in relationship set R is said to be total if every entity in E in atleast one relationship R (for ex: every employee must be under one dept)
+- participation of E in relationship set R is said to be total if every entity in E in at least one relationship R (for ex: every employee must be under one dept)
 - it is said to be partial if it is not necessary for every entity in E to paticipate in R 
 - we use double line to indicate total, and single line for partial
+- for further more complex constraint about participation's in the relationship set we use form l..h. where l is the minimum and h is the maximum carnality
+
+
+6.5 Primary Key
+6.5.1 Entity Sets
+6.5.2 Relationship Sets
+- weak entity set: an entity set that its primary key is partially or totally derived from the primary key of another entity set (for ex: section entity set, its primary key is derived from the course entity set and the section number)
+
+- ERD for weak entity set follow these rules:
++ weak entity set is represented by a double rectangle
++ discriminator is underlined dashed
++ identifying relationship set is represented by a double diamond
++ double line from weak entity set to identifying relationship set
++ arrow from identifying relationship set to the strong entity set
+
+
+6.6 Removing Redudant Attributes in Entity Sets
+- we should not have add attribute that represent relatioship while doing ERD, we should focus on describing the data and its attribute to avoid assumption and redundancy
+
+6.7.2 Representation of Strong Entity Sets with Complex Attributes
+- flattening composite attribute by separate it into simple attribute
+- flattening multi-valued attribute by creating a new entity set and a relationship set between the new entity set and the original entity set
+
+
+Chapter 7: Relational Database Design
+7.1 Features of a Good Relational Design
+7.1.1 Decomposition
+- decomposition: the process of breaking down a relation into smaller relation to eliminate redundancy and update anomaly
+- a good decomposition should be lossless and dependency preserving
+- lessless decompossion ensure that we can reconstruct the original relation from the decomposed relation by using natural join
+- to obtain lossless decomposition we must ensure that the common attribute between the decomposed relation is a super key for at least one of the decomposed relation
+
+
+7.1.3 Normalization Theory
+- normalization: the process of organizing the attributes and relation of a database to minimize redundancy and dependency
+- normal form: a property of a relation that indicate the level of normalization
+- there are several normal form: 1NF, 2NF, 3NF,
+
+
+7.2 Decomposition Using Functional Dependencies
+7.2.1 Notational Conventions
+7.2.2 Keys and Functional Dependencies
