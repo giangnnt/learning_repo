@@ -1,3 +1,5 @@
+-- Active: 1773673706685@@127.0.0.1@5432@study-db
+-- Active: 1773673706685@@127.0.0.1@5432@study-db
 What → Why → Where → When → Who → How → Limit → Compare → Use case
 
 Chapter 1
@@ -905,3 +907,63 @@ Chapter 7: Relational Database Design
 7.2.3 Lossless Decomposition and Functional Dependencies
 - we obtain lossless decomposition if R1 ∩ R2 → R1 or R1 ∩ R2 → R2
 - in other word, R1 ∩ R2 must be a superkey for at least one of the decomposed relation
+
+- but to ensure that the decomposition is actually lossless we need to impose that:
++ R1 ∩ R2 is primary key for R1 (superkey only ensure theoretically, but primary key is the acctual implementation that ensure the lossless decomposition)
++ R1 ∩ R2 is foreign key for R2 referencing R1 (foreign key also ensure the lossless decomposition because it ensure that the value of R1 ∩ R2 in R2 must exist in R1)
+
+
+7.3 Normal Forms
+7.3.3.1 Definition
+- BCNF (Boyce-Codd Normal Form): a relation is in BCNF mean it is eliminate all redundancy and anomoly
+- relation can archieve BCNF if it satisfy the following condition, for all functional dependencies in F+ at least one must holds:
++ a -> b is trivial: 
++ a is superkey for R: at least one the FD of form a->b must have a as superkey or there will be redundancy and anomaly
+
+
+Part 3: Application Design ans Development
+Chapter 8: Complex Data Types
+- key requirement for relational model is that the value of an attribute must be atomic (indivisible), but in real world, there are many data that are not atomic, for ex: phone number, address, name, etc.
+- to represent those data, we can use complex data type, which allow us to store multiple value in a single attribute, or to store structured data in a single attribute
+8.1 Semi-structured Data
+8.1.1.1 Flexible Schema
+- Some database allow tuple to have different set of attribute (called wide coulumn)
+- a more stricted way to archieve flexible is to have fixed but larger number of attribute, and allow null value for attribute that are not used in a particular tuple
+
+
+8.1.1.2 Multivalued Data Types
+- for specialized support for arrays(spatial, raster data), postgres need extension like PostGIS
+
+
+8.1.1.3 Nested Data Types
+8.1.1.4 Knowledge Representation
+- we use RDF (Resource Description Format) to represent knowledge in a graph form
+
+
+8.1.2 JSON
+- BSON (Binary JSON) is a binary representation of JSON, it is more efficient to store and query than JSON, but it is not human readable
+- use json_build_object to create json object from key value pairs (key1, value1, key2, value2...)
+- use jso_agg to aggregate, create a single json object from multiple json object
+- obj -> key: get the value of the key in the json object
+- obj ->> key: get the value of the key in the json object as text
+- obj -> index: get the value of the index in the json array
+- obj #>> {key1, key2...}: get the value of the nested key in the json object: key1.key2
+
+
+8.1.4 RDF and Knowledge Graphs
+8.1.4.1 Triple Representation
+- RDF (Resource Description Framework) represent knowledge in a graph form, it use triple to represent the relationship between entities, a triple form is (subject, predicate, object), for ex: (Alice, knows, Bob)
+- we use the keyword "resource" to indicate any thing in the real world that can be identified, it can be a person, a place, a thing, an idea...
+- Uniform Resource Identifier only focus on identifying the resource, to connect a resource to another resource we also care about network system
+- RDF only support binary relationship
+
+
+8.1.4.2 Graph Representation of RDF
+- in graph, entities and attribute value are represented as node, and relationship and atribute names is represented as edge
+- object show as oval, attribute value show as rectangle
+- represent of RDF graph model is called knowledge graph
+- while erd focus on storing and retrieving data efficiently, knowledge graph focus on connecting and semantic of data through semantic labels
+
+
+8.1.4.4 Representing N-ary Relationships
+- in RDF attribute is not only a name, it also a resource that can have its own attribute, semantic and relationship
