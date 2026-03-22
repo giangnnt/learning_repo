@@ -1,5 +1,3 @@
--- Active: 1773673706685@@127.0.0.1@5432@study-db
--- Active: 1773673706685@@127.0.0.1@5432@study-db
 What → Why → Where → When → Who → How → Limit → Compare → Use case
 
 Chapter 1
@@ -850,7 +848,13 @@ re
 6.5 Primary Key
 6.5.1 Entity Sets
 6.5.2 Relationship Sets
+- Many to many relationship set: primary key is the combination of the primary key of the participating entity set
+- One to many relationship set: primary key of the many side is the minimal primary key 
 - weak entity set: an entity set that its primary key is partially or totally derived from the primary key of another entity set (for ex: section entity set, its primary key is derived from the course entity set and the section number)
+- One to one relationship: primary key can be either the primary key of one of the participating entity set
+- Non-binary relationship set:
++ no cardinality constraint: primary key is the combination of the primary key of all participating entity set
++ with cardinality constraint: (depenend on the constraint and semantic of the relationship set)
 
 - ERD for weak entity set follow these rules:
 + weak entity set is represented by a double rectangle
@@ -863,9 +867,24 @@ re
 6.6 Removing Redudant Attributes in Entity Sets
 - we should not have add attribute that represent relatioship while doing ERD, we should focus on describing the data and its attribute to avoid assumption and redundancy
 
+6.7 Reducing E-R Diagrams to Relational Schemas
+6.7.1 Representation of Strong Entity Sets
 6.7.2 Representation of Strong Entity Sets with Complex Attributes
 - flattening composite attribute by separate it into simple attribute
 - flattening multi-valued attribute by creating a new entity set and a relationship set between the new entity set and the original entity set
+
+
+6.7.3 Representation of Weak Entity Sets
+- combine the primary key of the strong entity set and the discriminator to form the primary key of the weak entity set
+
+
+6.7.4 Representation of Relationship Sets
+- for many to many relationship set, we create a new relation with the primary key is the combination of the primary key of the participating entity set
+- for one to many relationship set, the primary key is the many side, and we add a foreign key to each entity participate in the relationship
+
+
+6.7.6 Combination of Schemas
+- representation of relationship set between strong and weak entity is not necessary
 
 
 Chapter 7: Relational Database Design
@@ -966,4 +985,50 @@ Chapter 8: Complex Data Types
 
 
 8.1.4.4 Representing N-ary Relationships
-- in RDF attribute is not only a name, it also a resource that can have its own attribute, semantic and relationship
+- in RDF predicate is not only a attribute name, it also a resource that can have its own attribute, semantic and relationship. By that its help reasoning
+
+
+8.2 Object Orientation
+- There are three main way to approach integrating object-oriented with the database:
++ Object-Relational Mapping (ORM): a technique to map object-oriented data model to relational data model
++ Object-Oriented Database (OODB): a database that support object-oriented data model natively (due to its complexity and lack of standardization, OODB is not widely used in practice)
++ Object-Relational Database (ORDB): a database that support both object-oriented and relational
+
+8.2.1 Object-Relational Database Systems
+8.2.1.3 Type Inheritance (to be continued (type inheritance))
+- Type and Table Schema is similar in concept, but different in level of abstraction
+- Table Schema ~ Composite Type + Metadata + storage 
+- In postgres dont support type inheritance, but we can use table inheritance to achieve similar effect
+- about table inheritance in postgres, is is a "Structural Inheritance", which mean that the child table inherit the structure of the parent table, but not the data:
+
++ when query a parent table, it will also return the tuple in the child table (use "only" keyword to query only the parent table)
++ child table inherit all column from parent table, but it can also have its own column
++ check constraint, not null is inherited by child table
++ "default" is inherited by child table, but it can be override by child table
++ select, update, delete on parent table will also affect the child table
+
++ primary key, foreign key, unique constraint, index, trigger, rule, sequence, serial insert  is not inherited by child table
+
+- if not effect global state (only on record, structural level) -> inherit, if effect global state -> not inherit
+
+- in case of update, delete: careful with the cascade effect, because it can affect the child table, which can cause data inconsistency if not handle properly
+
+
+8.2.1.4 Reference Types in SQL (to be continued (reference type Oracle))
+8.2.2 Object-Relational Mapping (ORM)
+8.3 Textual Data
+- information retrieval: the process of retrieving relevant information from a large collection of data, it is different from data retrieval because it focus on relevance rather than exact match
+- document: a logical unit of information that can be retrieved, it can be a web page, a news article, a research paper, etc.
+
+
+8.3.1 Keyword Queries
+- in simplest form, an IR (Information Retrieval) use keyword to retrieve document which contain the keyword
+- more advanced system estimate the relevance of a document to a query using occurences, hyperlink information, etc.
+- keyword-based can also use with other type of data, such as image, video, audio, etc., that have descriptive keyword associated with them
+- web search engine at core is an IR system that use keyword. To retrieve and store web page, it use web crawler to crawl the web and index the web page based on the keyword in the web page
+
+
+8.3.2 Relevance Ranking
+8.3.2.1 Ranking Using TF-IDF
+- term: is the result of tokenization, normalization
+- here how it work:
