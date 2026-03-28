@@ -1031,4 +1031,79 @@ Chapter 8: Complex Data Types
 8.3.2 Relevance Ranking
 8.3.2.1 Ranking Using TF-IDF
 - term: is the result of tokenization, normalization
-- here how it work:
+- term is a similar concept to keyword:
++ keyword focus on semantic of the word, use by human
++ term focus on transform keyword into a form that can be processed by computer, use by IR system by processof tokenization -> normalization -> stemming, lemmatization...
+- TF(d, t): the relevance of a term t to a document d
+- a way to measure TF(d, t): log(1 + (n(d,t) / n(d)))
++ n(d): the total number of term in document d
++ n(d,t): the number of term t in document d
++ +1 is added for smoothing to ensure in (0,1]
++ log is used to dampen the effect of term frequency, because the relevance of a term does not increase linearly with its frequency in a document
+- some term are more important than other term
+- IDF(t) = 1 / n(t): n(t) is the number of document that contain term t (the higher, the less important the term is)
+
+- r(d, Q) = sum_{t in Q} TF(d,t) * IDF(t)
+
++ r(d, Q): the relevance of a document d to a query Q
++ sum_{t in Q}: the sum of the relevance of each term in the query Q to the document d
+- if user can specify the importance of each term in the query, we can use r(d, Q) = sum_{t in Q} w(t) * TF(d,t) * IDF(t), where w(t) is the weight of term t in the query Q
+- combine TF and IDF we get TF-IDF
+- stop-word: a term that is very common and does not carry much meaning, ex: "the", "is", "and", etc. We can remove them from the document and query to improve the relevance of the search result
+- we also take account of proximity of the term in the document, because the closer the term is to each other, the more relevant they are to each other
+
+
+8.3.2.2 Ranking Using Hyperlinks
+- the more hyperlink point to a document, the more relevant it is
+- page that are pointed from a high rank page are more relevant than page that are pointed from a low rank page
+
+- delta/N + (1-delta) * sum_{i=1..N} T[i,j] * P[i]
+
++ T[i,j]: the probability of following the hyperlink from page i to page j.+ T[i,j] = 1 / Ni, where Ni is the number of hyperlink in page i
++ sum_{i=1..N}: for each page i that point to page j, we sum the contribution of page i to the relevance of page j
++ delta/N: the probability of randomly jump to any page
++ (1-delta): the probability of following the hyperlink
+
+
+8.3.3 Measuring Retrieval Effectiveness
+- precision: the fraction of retrieved document that are relevant to the query
+- recall: the fraction of relevant document that are retrieved by the query
+- we use @k to denote the precision and recall at k, which is the precision and recall of the top k retrieved document
+
+
+8.3.4 Keyword Querying on Structured Data and Knowledge Graphs
+8.4 Spatial Data
+- geographic Information System (GIS): a system that capture, store, manipulate, analyze, manage, and present spatial or geographic data
+- geometric data type: a data type that represent geometric object, such as point, line, polygon, etc.
+
+
+8.4.1 Representation of Geometric Information
+- line segment: a line segment is defined by two point (x1, y1) and (x2, y2)
+- polyline: a polyline is defined by a sequence of point (x1, y1), (x2, y2), ..., (xn, yn)
+- circular arc: a circular arc is defined by three point factor: the center of the circle (cx, cy), the radius r, and the start and end angle (theta1, theta2) -> more optimal than using many polyline to approximate a circular arc
+- polygon: a polygon is defined by a sequence of point (x1, y1),
++ polygon can devided into triangle (triangulation)
+
+
+8.4.3.2 Representation of Geographic Data
+- raster data: a raster data is a grid of cell, each cell have a value that represent the attribute of the area covered by the cell (for ex: elevation, temperature, land use, etc.)
+- vector data: a vector data is a collection of geometric object, such as point, line, polygon, etc. that represent the geographic feature (for ex: road, river, building, etc.)
+topological data: represent information in form of raster or vector data
++ it can also be triangulated to represent the geographic feature, called Triangulated Irregular Network (TIN)
+
+
+8.4.4 Spatial Queries
+- spatial query: a query that involve spatial data, it can be used to retrieve, manipulate, and analyze spatial data
+- spatial query can be classified into: 
++ region queries
++ nearest queries
++ nearest neighbor queries
++ spatial graph queries
++ spatial join
+
+
+Chapter 9: Application Developments
+9.9.1 Encryption Techniques
+- encryption: the process of encryption denpend heavily on the encription key
+- symmetric encryption: the same key is used for encryption and decryption, it is faster than asymmetric encryption but less secure
+- asymmetric encryption: use a pair of key, one for encryption (public key) and one for decryption (private key) 
