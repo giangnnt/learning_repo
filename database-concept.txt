@@ -1102,8 +1102,70 @@ topological data: represent information in form of raster or vector data
 + spatial join
 
 
-Chapter 9: Application Developments
+Chapter 9: Application Developments (to be continued (RSA encryption))
 9.9.1 Encryption Techniques
 - encryption: the process of encryption denpend heavily on the encription key
 - symmetric encryption: the same key is used for encryption and decryption, it is faster than asymmetric encryption but less secure
 - asymmetric encryption: use a pair of key, one for encryption (public key) and one for decryption (private key) 
+
+- symetric encryption: work base on the key mechanism, a value xor with encrtyption twice will return the original value
+- dictionary attack: an attack that try to guess the encryption key by trying all possible value in a dictionary of common key
+
+
+9.9.3 Encryptiong and Authentication
+- challenge-response: a server send a random value (challenge) to the client, the client encrypt the challenge with encrypted key and send it back to the server, the server decrypt the response with the same key and compare it with the original challenge
++ challenge-response can also be used with asymmetric encryption
+- digital certificate: a digital certificate is a electronic document that use to prove the ownership of a public key, it is issued by a trusted third party called Certificate Authority (CA)
+- authenticating a server through only a CA is create burden for the CA. To solve this problem, we can use a chain of trust, where a CA can issue a certificate for another CA, and the client can verify the server's certificate by following the chain of trust up to a trusted CA
+- to reduce encryption cost, HTTPS actually create aone time symmetric key after authenticating and use it to encrypt data (Diffie-Hellman key exchange)
+
+
+Chapter 10: Big data
+- big data: a term used to describe the large volume of data that is generated and collected by organizations, it is characterized by the 3Vs: volume, velocity, and variety
+
+- company use big data for multiple purpose such as:
++ decision making: big data can provide insights and support decision making by analyzing large volume of data (post making, news, advertisement, etc.)
++ optimize user experience
++ measuring and improving the impact of decision
+
+- there are some source of big data:
++ user interaction data: data generated from user interaction with website, mobile app, social media, etc.
++ transaction data: data generated from transaction such as purchase, payment, etc.
++ sensor data: data generated from sensor of the devices connected to the internet (IoT)
++ metadata: data that describe other data
+
+
+10.1.2 Querying Big Data
+- building a big data system is hard because of the scale and complexity of big data, it require a different approach than traditional database system
+- there are two categories of big data system:
+
++ transaction-processing system (high scalability): focus on handling high volume of transaction
++ for it to do that, the system need to be fast and scalable (trade off with feature that normal database system have)
++ one approach is to use a key value store
++ join problem can be solved by using view materialization (precompute the join result) or by using applicaltion level join (join in the application code instead of in the database)
+
++ query-processing system (high scalability, need to support non relational data) 
++ 1st: it need to support store large volume of data
++ 2nd: it need to support query on non relational data
+
+
+- Big Data application often require processing data that is non-relational, such as text, image, video, etc. 
+- with the rapid growth of big data, there is a need for processing being done in parallel across multiple machine, which require a different approach and is not easy to archieve
+
+
+10.2 Big Data Storage Systems
+- to handle such large volume of data, big data storage system need to be distributed across multiple computing and storage node
+- such a system includes:
++ distributed file system: a layer of abstraction that allow us to store and access files across multiple machine as if they were stored on a single machine, run above the local file system (for ex: HDFS)
++ sharding accros multiple databases: sharding is a technique to partition a large database into smaller
++ key-value storage systems: sometimes call NoSQL because they dont support sql and not a full feature database system
++ parallel and distributed databases: provide a database interface but store data accross multiple machine, query processing in parallel across multiple machine
+
+
+10.2.1 Distributed File Systems
+- distributed file system design to store and access files, whose size can be from megabyte to hundred gigabytes, across multiple machine
+- file are broken into block and stored across multiple machine, each block is replicated (typically 3) to ensure fault tolerance and availability
+- DFS contain:
++ directory system: allow us to organize files into dir ans subdir
++ a mapping system: map file name to sequence of identifier of the block that store the file
++ ability to store and retrieve with specified identifier, its provide block identifier to store and retrieve file, in case of distributed and replicated file system, each block will also provide a set of machine identifier
