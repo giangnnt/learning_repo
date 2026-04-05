@@ -1168,4 +1168,92 @@ Chapter 10: Big data
 - DFS contain:
 + directory system: allow us to organize files into dir ans subdir
 + a mapping system: map file name to sequence of identifier of the block that store the file
-+ ability to store and retrieve with specified identifier, its provide block identifier to store and retrieve file, in case of distributed and replicated file system, each block will also provide a set of machine identifier
++ ability to store and retrieve with specified identifier, its provide block identifier to store and retrieve file, in case of distributed and replicated file system, each block identifier will also provide a set of machine identifier
+- NameNode: a master node that manage the metadata of the file system contain directory system, for each file, it store a list block id and the machine id that store the block and its copies
+- DataNode: a worker node that store the actual data blocks
+- to read a file, client call NameNode to get the block id and the machine id that store the block, then call assigned DataNode to retrieve the block
+- to write a file, the call NameNode to get the block id and the machine id that will store the block, then client send the block id and block to the assign machine to store the block 
+- hdfs can also be connected as local file system
+
+
+10.2.2 Sharding
+- sharding is a technique to partition a large database into smaller, more manageable pieces called shard
+- patition can be done by range of value, by hash of the value
+- sharding can be done at the application
++ this approach is simple way to scale application, but it require the application to handle the complexity of sharding, such as routing query to the correct shard, handling data consistency across shard, etc.
+
+
+10.2.3 Key-Value Storage Systems
+- As application grow, the amount of files that need to be stored also grow. Its pose problem such as metadata overhead and optimization for small file
+- a relational database is ideal for those above problem, but designing a relational database that can handle dbms features in a distributed environment is hard
+- serveral key-value storage system require to stored data in a specific format (called document store)
+- key-value storage system is not a full feature database system, it only provide basic operations such as put, get, delete, etc.
+- some document store additionally support limited forms of query on data values
+- key-value system also not support transaction, which can lead to data inconsistency if not handle properly
+- partitioning can be done base on the value of specified attribute
+
+- Bigtable is a key value storage system:
++ it require key to be follow a specific format: (RowKey, ColumnFamily:ColumnQualifier, Timestamp) → Value
++ the reason for this format is to: Sparse, distributed, persistent multi-dimensional sorted map
+
+
+10.2.4 Parallel and Distributed Databases
+- parallel database system can be classified into two categories:
++ using for transaction processing: suported only a few machine in a cluster
++ using for analytical processing: support a large number of machine in a cluster from 10 to 100 machine
+- in such system, if a query failed, we can retry the query on the same node machine with data from the replica since the probability of failure is low
+- in case of extreme system with large number of machine, retrying the query on the same machine may not be effective. In such case, we must "partial recovery" which will be discussed later
+- however doing so cause significant overhead
+
+
+10.2.5 Replication and Consistency
+- there a serveral problems with replication:
++ how to justify the point of transaction commit: transaction is said to be commit all when all replica have commit the transaction
++ how to handle update: if the machine contain the replica failed, how can we update the replica
+
+
+10.3 The MapReduce Paradigm
+- MapReduce is a programming model and an associated implementation for processing and generating large data sets with a parallel, distributed algorithm on a cluster
+- The MapReduce model consists of two main functions: 
++ Map: takes a set of input key-value pairs and produces a set of intermediate key-value pairs. 
++ Reduce: takes the intermediate key-value pairs produced by the Map function and merges them together to produce a smaller set of output key-value pairs. 
+
+- for pair of (mapKey, mapValue) in the input data, map function will produce a list of -> (reduceKey, reduceValue) pairs
+- then the system will group, shuffle and sort the intermediate key-value pairs by reduceKey -> (reduceKey, [reduceValue1, reduceValue2, ...])
+- finally, for each reduceKey, the reduce function will take the list of reduceValue and produce a list of output key-value pairs -> (outputKey, outputValue)
+
+
+10.3.4 Parralel Processing of MapReduce Tasks
+- Part i: input partion i 
+- Map i: the node that process the map function for Part i
+- Reduce i: the node that process the reduce function for output of Map i
+
+- Step 1: Master Node send copy of map() and reduce() function to each worker node
+- Step 2: Map i start processing Part i -> (reduceKey, reduceValue) pairs
+- Step 3: (reduceKey, reduceValue) going through a filter called "Partitione Function" to determine which Reduce i will process the reduceKey
++ common partition function: Reducer_ID = hash(reduceKey) mod R, where R is the number of reduce node
++ mod R ensure that R_ID is in the range of 0 to R-1, which is the index of the reduce node
+- Reduce i will actively fetch the output of Map i
+- Step 4: Reduce i start apply merge and sort on the intermediate key-value pairs
+- Step 5: Reduce i apply reduce() function on the intermediate key-value pairs to produce the final output
+
+
+10.3.5 Mapreduce in Hadoop
+- combine(): also called "combiner" or "semi-reducer", it is an optimization technique that allow us to perform a local reduce on the output of the map function before sending through network it to the reduce function 
++ it can significantly reduce the amount of data that need to be sent through network
++ but it is not always possible to use combine function, it only work for certain type of reduce function that is commutative and associative (for ex: sum, count, max, min, etc.)
+
+
+10.3.6 SQL on MapReduce
+- select: can be implemented as a map function that filter the input data based on the condition in the select statement
+
+- aggregate function: can be implemented as follows:
++ map function: for each input record, emit a key-value pair where the key is the group by attribute and the value is the value of the aggregate function for that record
++ reduce function: for each key, apply the aggregate function to the list of values and emit a key-value pair
+
+- join: can be implemented as follows:
++ map function: for each input record, emit a key-value pair where the key is the join attribute and the value is the record itself
++ reduce function: for each key, apply the join condition to the list of records and emit the joined record if the condition is satisfied
+
+
+10.4 Beyond MapReduce: Algebraic Operations
