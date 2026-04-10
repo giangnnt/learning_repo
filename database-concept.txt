@@ -1257,3 +1257,52 @@ Chapter 10: Big data
 
 
 10.4 Beyond MapReduce: Algebraic Operations
+- modern data system processing data reuse the same idea of take data input, apply a series of algebraic operation on the data, and produce output data
+- but the algebraic operation is not limited columns with atomic data types as in relational algebra, it can also operate on complex data and more complex expression
+
+
+10.4.2 Algebraic Operations in Spark
+- Resilient Distributed Dataset (RDD): is a equivalent of a relation in relational algebra
+
+
+10.5 Streaming Data
+10.5.1 Applications of Streaming Data
+10.5.2 Querying Streaming Data
+- window is a way to deal with unbound nature of streaming data, it allow us to compute with a finite amount of data at a time
+- another is instead of re quering data from the beginning, we can add the arriving data to the previous query result, this is called incremental processing
+
+- base on the two above approach, we develop to serveral approaches:
++ continuous query: a query that is continuously running and produce output as new data arrive
++ streaming query languages: extesion of sql that support querying streaming data using window 
++ algegraic operators on the streams: define "user functions" to apply to a stream of data, great on maintain internal state of the stream
++ pattern matching: define a pattern of "events" that we want to detect in the stream, and the system will emit an "action" when the pattern is detected
+
+- stream-processing system may not guarantee for persistence data storage
++ we approach this problem by using machanism such as copy data, separate storage and query processing
++ this approach consequently lead to 2 problems: we have to write a data twice, streaming query may not have access to all data
+
+
+10.5.2.1 Stream Extensions to SQL
+- instead of a "work-around" to query streaming data by adding a timestamp to the data and use window function, we can approach this problem by streaming query language:
++ tumbling window: window that is non-overlapping and contiguous, it is defined by a fixed "size"
++ hopping window: after a "hop", create a new window with "size", for smoothing data 
++ sliding window: define a new window for each new data arrive
++ session window: define using first time user is active and a "gap" of inactivity. When user is active, the window keep expanding, when user is inactive for a "gap" time, the window is closed and a new window will be created when user is active again
+
+- we must defferentiate between stream and relation
++ stream: unbounded sequence of data, implicit timestamp
++ relation: data is fixed at any point
+
+- join a relatin with a stream
+- join a stream with a stream create a new stream, (but we have to specify the window for the join, avoiding the unbound nature of the stream)
+
+
+10.5.3 Algebraic Operations on Streams
+- we approach streaming process with a Algebraic operations model
+- the model provide: 
++ user defined function
++ predefined algebraic operations
+
+- the key task of operating a model like this is to create a fault-tolerance system
+
+- the logical routing can be represented by a directed acyclic graph (DAG), where each node represent an operation and each edge represent the data flow between the operation
