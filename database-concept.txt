@@ -1305,4 +1305,45 @@ Chapter 10: Big data
 
 - the key task of operating a model like this is to create a fault-tolerance system
 
-- the logical routing can be represented by a directed acyclic graph (DAG), where each node represent an operation and each edge represent the data flow between the operation
+- the logical routing can be represented by a directed acyclic graph (DAG), where each node represent an operation and each edge represent the data flow between the operation, the exist point is sink node where data can be store elsewhere
+- Apache Storm use topology config file to define the DAG
++ data source node is called "spout"
++ data processing node is called "bolt"
+
+- in algebra operations system, we use publish-subscribe mechanism to handle the data flow between the operation
++ pub-sub system can decouple operators
++ fan-out: the output of an operator can be sent to multiple downstream operator, which can be use for other purpose such as backup, monitoring, etc.
++ create a "buffer" between operators which allow fault-tolerance
+- data entry considered as "document" and tagged with "topic", operators can subscribe to topics to receive the data, and publish to topic to send data to other operator
+- published document are retained for retention period
+
+- there is issue when dealing with stream, some operaters only process until the stream is consume which lead to unbounded time.
++ spark approach this problem by using discretized stream which treat the stream asfile or relation
++ out put of these operations in treated as a stream again
+
+
+10.6 Graph Databases
+- there are two approaches when come to parallel processing of graph data:
+1. Map-reduce and algebraic framework: basically represent the graph data as a relation and use map-reduce or algebraic operation to process the graph data, but this approach is not efficient
+2. Bulk synchronous processing frameworks: 
+- we focus on three things:
++ mind set: focus only on a single vertex (node) and its neighbor, interact through message passing, and do not have global view of the graph
++ superstep: follow these step rules:
+* receive message from previous superstep
+* compute new value for the vertex and send message to neighbor
+* synchronize with other vertex (wait until all vertex have finish the superstep)
++ halting condition: the computation will halt when all vertex have halt, and there is no message in transit
+
+
+- Chapter 11: Data analytics
+- dataware house might collect data from multiple source, and store it in a central repository, under unified schema which efficient for analysis and reporting
+- datawarehouse facing with
++ non-relational data: today warehouse also collect and store data from non-relational source 
++ data source error: data source have error data can be detected
++ data duplication: data source may have duplicate data since they are collected from multiple source
+
+- online analytical processing (OLAP): a category of software tools that provide analysis of data stored in a data warehouse, it allow users to perform complex queries and analysis on the data, such as aggregation, slicing and dicing in small amount of time
+- decision support: use SQL to query large amounts of data to support decision making, it is different from transaction processing because it focus on analysis rather than data manipulation
+
+
+11.2 Data Warehousing
