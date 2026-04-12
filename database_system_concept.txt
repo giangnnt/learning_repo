@@ -1347,3 +1347,54 @@ Chapter 10: Big data
 
 
 11.2 Data Warehousing
+11.2.1 Component of Data Warehouse
+- there are issue when building a warehouse
++ when and how to gather data: 
+* source-driven architecture: data is send to the warehouse continuously or periodically
+* destination-driven architecture: warehouse will send request to the source to gather data
+* usually "yesterday's data" is good enough for analysis, but for some case we also need for real-time data, which use stream processing to gather data
++ what schema to use: data schema in the warehouse is different from the schema in the source, can be thought as a "view" of the source schema
++ data transformation and cleaning: 
+* data cleansing, fuzzy lookup: the process of detecting and correcting, removing inconsistent, inaccurate, incomplete, or irrelevant data from the data source
+* deduplication, merge-purge operation: the process of identifying and removing duplicate data from the data source
+* householding: a technique to group together records that belong to the same entity (for ex: grouping individuals have the same address into a household)
+* transformed: a process of converting data from one format or structure to another, it can be used to standardize data from different source
++ how to propagate updates: update in the source can be propagated to the warehouse in different way, we focus on "view-maintenance" problem
++ what data to summarize: instead of storing all data in the warehouse, we can also store aggregation of the data 
+
+- modern generation of data warehouse support user defined function, mapreduce so the step are ELT (Extract, Load, Transform) instead of ETL (Extract, Transform, Load)
+
+
+11.2.2 Multidimensional Data and Warehouse Schemas
+- fact table: a table record information about a individual event
++ measure attribute: a attribute that contain the value of the event (ex: quantity, price, etc.)
++ dimension attribute: a attribute that contain the context of the event (ex: time, location, product, etc.)
+- dimension table: a table that contain the values of the dimension attributes
+
+- schema with fact table reference to dimension table is called star schema
+- if dimension table reference to another dimension table (giving layer detail), it is called snowflake schema
+
+
+11.2.3 Database Support for Data Warehouses
+- key difference between data warehouse (OLAP) and traditional database system (OLTP) is that OLTP focus on transaction processing, involve updates in addition to reads, OLAP need to process fewer queries but larger amount of data
+- reasons for data warehouse can perform better at read and store large amount of data:
++ never update data: only insert and delete, data never updated once in the warehouse 
++ no concurrency control: since there is no update, there is no need for concurrency control, which can significantly improve the performance of the warehouse
+
+- row-oriented storage: store all attribute of a tuple together and tuples are stored sequentially in a file
++ its provide fast insert and update since all attribute of a tuple are stored together, but it is not efficient for read because irrelevant attribute of a tuple are also fetch, cause waiting cache space and memory
+- column-oriented storage: each attribute of a relation is stored in a separate file, attribute of a tuple i can be read by (i-1) * size of attribute i (m), we read m space for each attribute
++ it provide fast read since require attribute all store in the same place
++ storing value of the same type together increase the compression -> reduce the storage space and improve the performance of read
++ suitable for aggregate query
+
+
+11.2.4 Data Lakes
+- data lake: a repository that allow to store unstructured data, it do not require up-front effort but it require more effort to creating queries
+
+
+11.3 Online Analytical Processing 
+11.3.1 Aggregation on Multidimensional Data
+- cross-tabulation(cross-tab): a table that show the aggregation of data based on two or more dimension attribute, it is also called pivot table
+- data cube: is a generalization of cross-tab which can present n-dimension 
++ data cube have three dimension
