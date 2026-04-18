@@ -774,7 +774,7 @@ Chapter 5: Advanced SQL
 
 
 5.5.4 Rollup and Cube (to be continued (identity element))
-- rollup is a extension of group by that produce subtotals and grand total in the result
+- rollup is a extension of group by that producCubee subtotals and grand total in the result
 - its create many group by using the same group by attribute, but with different level of aggregation
 - cube is a extension of rollup that produce subtotals for all combination of group by attribute
 - use "grouping set" to specify which combination of group by attribute to be included in the result
@@ -1397,4 +1397,79 @@ Chapter 10: Big data
 11.3.1 Aggregation on Multidimensional Data
 - cross-tabulation(cross-tab): a table that show the aggregation of data based on two or more dimension attribute, it is also called pivot table
 - data cube: is a generalization of cross-tab which can present n-dimension 
-+ data cube have three dimension
++ each cell in data cube is identified by values for three dimension
+- with a set of n dimensions, we can have 2^n subset
+- pivoting: the process of transforming a cross-tab to another cross-tab by swapping the row and column dimension
+-slicing, dicing: the process of selecting a subset of the data cube by fixing the value of one or more dimension
+- when cross tab is use for viewing multidimensional cube, the value that are not show in the cross-tab is show above the cross-tab. Dicing and Slicing simply is just adjusting those value
+
+- rollup aggregate data by level of aggregation instead of each subset of dimension
+- drill down: the process of going from a higher level of aggregation to a lower level of aggregation
+
+
+11.3.2 Relational Representation of Cross-Tab
+- cube: generate all possible combination of dimension
+- rollup: generate combination base on the level of aggregation -> hierarchy of dimension
+- grouping sets: generate specific combination of dimension
+
+
+11.3.4 Reporting and Visualization Tools
+- report generators support the creation of reports (formatted text, graphical), query database
+- data visualization go beyond basic chart, it can help examine large data and detect pattern by combining:
++ compactly visual display 
++ encoded data with visual attributes such as position, size, color, density, etc.
+-> help create hypothesis, link data together, overview of data
+
+- there also development of web based visualization tool, which allow to display data in multiple device and platform
+- interaction is also important for data visualization
+
+
+11.4 Data Mining
++ data mining: the process of discovering patterns and data relationship
++ statistical analysis: analyze data, find out if the pattern, relationship is "correct" or just a coincidence, and make inference about the data
++ machine learning: learn from data, make prediction about the future data
+- rules: a rule is a statement that describe a relationship between two or more attribute
+- model: knowledge discover from machine learning, it can be used to make prediction about future data
+
+
+11.4.1 Types of Data Mining Tasks
+- prediction: the task is to carry out a prediction about future data base on attributes, for ex: predict the wehther a person will repay a loan...
+- descriptive pattern: the task is to find out a pattern in the data, it sub categories are:
++ clustering: group of data share the same attribute value together -> help find out pattern in the data, for ex: group of civilization share the same disease
++ association: find out relationship between attributes, for ex: find out that people who buy bread also buy butter, new realease medicine raise a strange pattern of disease, etc.
+
+
+11.4.2 Clasification
+- classification is a sub set of prediction, where the task is to predict a categorical value (class) base on the value of other attribute
+
+
+11.4.1 Decision-Tree Classifiers
+- we create a tree, each leaf node associated with a class and internal node has a predicate (function) that test the value of an attribute
+
+
+11.4.2.2 Bayesian Classifiers
+Bayes's theorem: P(C|X) = P(X|C) * P(C) / P(X)
++ P(C|X): the probability of instance with attribute value X belong to class C
++ P(X|C): the probability of instance with class C have attribute value X
++ P(C): the past probability of appearance of class C
++ P(X): the past probability of appearance of instance that have attribute value X
+
+- in general, a instance can have multiple attribute, there for calculating all posibility of attribute value combination p(d|cj) can be very expensive
++ there for we make an assumption that all attribute are independent, which is called "naive Bayesian classifier"
++ p(d|cj) = p(d1|cj) * p(d2|cj) * ... * p(dn|cj)
++ to deal with range value attribute, we devide the range into interval and calulate the probability base on the interval
+
+
+11.4.3 Support Vector Machine Classifiers
+- to classify a instance, we can find a "maximum margin line" that separate the instance from the other class
+- more generally, we can find a "dividing plane" that separate the instance from the other class in higher dimension space
+- using kernel function, we can also find a "non-linear curve" that separate the instance from the other class in higher dimension space (to be continued (kernel function))
+
+
+11.4.2.4 Neural Network Classifiers (to be continued)
+- neural network contain multiple layer of "neuron", each neuron is a function that take a weighted sum of its input and apply an activation function to produce an output
+- initially, the weight of each neuron is set randomly, if the prediction of the neural network is not correct, we can adjust the weight of each neuron using a technique called "backpropagation"
+- deep learning: a machine learning technique that use multiple layer of neural network and large amount of instance to learn
+
+
+11.4.3 Regression
