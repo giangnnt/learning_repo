@@ -1473,3 +1473,76 @@ Bayes's theorem: P(C|X) = P(X|C) * P(C) / P(X)
 
 
 11.4.3 Regression
+- regression is a sub set of prediction, where the task is to predict a continuous value base on the value of other attribute
+- linear regression: is a regression technique that assume a linear relationship between the independent variable and the dependent variable
+- Y = a0 + a1 * X1 + a2 * X2 + ... + an * Xn
++ Y: the dependent variable (the value we want to predict)
++ X1, X2, ..., Xn: the independent variable (the attribute that we use to predict Y)
++ a0, a1, a2, ..., an: the coefficient that we need to learn from the data
+- curve fitting: is a task of finding a curve that best fit the data
+
+
+11.4.4 Association Rules
+- population: the set of all instance in the data
+- instance: a individual data record in the population
+* choosing population and instance is important, because it can affect the result of the analysis
+* each analysis target a specific population and instance
+
+- support: the chance of having the antecedent and the consequent happen together in the population
+- confidence: the chance of having the consequent if the antecedent happened
+
+
+11.4.5 Clustering
+- clustering: the task is finding clusters of points in the given data
++ clustering gather group of instance that share the same attribute value together, it help find out pattern in the data, predict the value of an instance
+
+
+11.4.5 Text Mining
+- sentiment analysis: the task is to determine the sentiment of a text, such as positive, negative, or neutral base on the words and phrases in the text
+- information extraction: the task is to extract structured information from unstructured text, such as extracting entities, relationships, and events from a text
+- entity recognition: the task is to identify and classify named entities in a text
+- disambiguation: the task is to determine the correct meaning of a word or phrase in a text using the context of the text
+- information extraction can be use for analyze customer review, extract information about a specific aspect of a product, etc.
+- extracted information can be represented in a graph, called "knowledge graph"
+
+
+Part 5 Storage Management and Indexing
+Chapter 12: Physical Storage Systems
+12.1 Overview of Physical Storage Media
+- medium: a physical material, environment which store, transfer data
+- drive: the part that control, read and write data to the medium
+- cache: the fastest and most expensive storage
+- main memory: the second fastest and second most expensive storage, it is volatile, which means that the data will be lost when the power is off
+- flash memory: a non-volatile storage, widely used for storage in devices such as cellphones, cameras. SSD use flash internally.
++ flash provide a interface similar to magnetic disk called block oriented interface
+- magnetic-disk storage: also a non-volatile storage, it is used for long-term storage of data, it is slower than flash but cheaper. Also refer to as "hard disk drive" (HDD)
++ to read or write data to a magnetic disk, the system must first move data to the main memory, after performing operations, data is written back to the disk
+- optical storage: a DVD is an example of optical storage, it is a non-volatile storage, using laser light to read and write data
++ some DVD can be read only, some can be write once, WORM (write once read many)  
++ suitable for large amount of data that need to be stored for a long time but not need to be updated, such as backup
++ jukebox: a system contain multiple DVD and a robotic arm to load DVD to the drive
+- tape storage: refer to sequential storage which data must be read at the beginning of the tape <> direct access storage which data can be read at any point (SSD, HDD)
+
+- magnetic tape and optical disk jukeboxes are referred to as tertiary storage, or oﬄine storage.
+
+
+12.2 Storage Interfaces
+- Serial ATA (SATA): a common interface for connecting storage devices such as SSD and HDD to a computer, it use AHCI protocal, usually used for personal devices and half-duplex (only write or read at a time)
+- AHCI protocal run on SATA interface
+- Serial Attached SCSI (SAS): a high-speed interface for connecting storage devices, it faster and usually used for enterprise storage systems, it support full-duplex (write and read at the same time)
+
+- Non-Volatile Memory Express (NVMe): a high-performance  protocal for accessing non-volatile storage media, it run on PCIe bus, it provide low latency and high throughput
+
+- disk can also be connected to the computer through a high-speed network, such as Storage Area Network (SAN)
+- RAID (Redundant Array of Independent Disks): a storage organization technique to give server a logical view of a large, reliable disk
+
+- SCSI: a protocal for connecting and transferring data between computers and peripheral devices
+- iSCSI: a protocal that allow to use SCSI over a network, it is commonly used for SAN
+
+- Network attached storage (NAS): its like SAN but instead of network storage appear to be a large disk, it provide file system interface instead of access through block of data
++ it use network file system (NFS) or Common Internet File System (CIFS)
++ DFS is an abstract layer of NFS and CIFS protocols, it allow us to store and access files across multiple machine as if they were stored on a single machine
+
+
+12.3 Magnetic Disks
+12.3.1 Physical Characteristics of Disks
