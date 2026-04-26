@@ -1627,5 +1627,57 @@ above FTL, flash storage provide identical interface to magnetic disk
 + 32 parallel channel to read/write data (100,000 random with SATA, 350,000 random with NVMe PCIe)
 - data transfer rate 400-500 mb/s for SATA, 2000-3000 mb/s for NVMe PCIe
 
+
 12.5 RAID
 - RAID (Redundant Array of Independent Disks): a storage organization technique improve reliability and performance of disk storage by using multiple disk to store data
+
+
+12.5.1 Improvement of Reliability via Redundancy
+- redurdency: the use of additional disk to store redundant data
++ mirroring: a logical disk consist of two physical disk, write data to both disk, if one disk fail, the other disk can still provide the data
+
+- mean time to failure (MTTF): the average time until a disk fail
+- mean time to repair (MTTR): the average time to repair a failed disk
+- mean time to data loss (MTTDL): (2 * delta) "probility of 2 disk failure" * (delta * MTTR) "the other disk fail during the repair time of the first disk"
++ (delta = 1/MTTF)
+
+- if power fail befor both disk finish writing block, it can cause data inconsistency
++ to deal with this problem, we can write one copy first, then write the other copy
+
+12.5.2 Improvement of Performance via Parallelism
+- block level stripping: this technique is similar to partitioning data, it divide data into block and distribute the block across multiple disk
++ improve performance by allowing multiple disk to read/write data in parallel
+
+
+12.5.3 RAID Levels
+- parity block: a block that store the parity information, computed by applying XOR operation to the data block, it can be used to recover data in case of disk failure
+- the best way to update parity block is: P(new) = P(old) XOR A(old) XOR A(new)
+
+- RAID levels:
++ RAID 0: block level stripping without redundancy (mirroring or parity)
++ RAID 1: mirroring with block level stripping
++ some vendors use the term "RAID 10" to refer to what RAID 1 actually is (they use RAID 1 to refer to mirroring without block level stripping, write data to disk until it is full, then write to the other disk)
++ RAID 5: block level stripping with distributed parity, it use N + 1 disk to store data and parity for each set of N data block
++ parity is at disk k mod 5 
++ where k is a stripe number
++ a stripe is a set of block that are stored across multiple disk, it consist of N data block and 1 parity block
++ dont store parity block and its data on the same disk, it can cause data loss if the disk fail
+- RAID 6: block level stripping with double distributed parity, it can tolerate two disk failure using Reed Solomon containing two parity block (P, Q) for each set of N data block
+
+
+12.5.4 Hardware Issues
+- software RAID: implemented with no change in hardware level, using only software modification
+- hardware RAID: specialized hardware to support RAID
+- scrubbing: a process of periodically reading all data and parity block to detect and correct any error in the data
+- hot swapping: the ability to replace a failed disk without shutting down the system, it can significantly reduce the MTTR
+
+- RAID system might also have a hot spare disk, which is a disk that is not used for storing data but can be automatically used to replace a failed disk
+- we also should implement power supplies in case of power failure
+
+
+12.5.5 Choice of RAID Level
+- there are factors to consider when choosing a RAID level:
++ monetary cost
++ performance in I/O operation
++ performance when a disk fail
++ performance during the repair of a failed disk
