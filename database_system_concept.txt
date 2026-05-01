@@ -1718,3 +1718,91 @@ Chapter 13: Data Storage Structures
 - file: organized logically as a sequence of records, records are mapped onto disk blocks
 - file also logically partitioned into "blocks", most dbms use fixed size block of 4KB or 8KB
 - block may contain multiple record, in this case, we assume that is no bigger than a block, in reality, record can be larger if it is special type of record such as image
+
+
+- one way to organize file is to store records that have the same length 
+- another way to organize file is to store records that have different length
+
+13.2.1 Fixed-Length Records
+- to store fixed-length record, we first devide the block with record length, any remaining space are left unused
+- it is undesirable to move records to occupy the unused space since it involve block I/O
++ to deal with problem of unused space, we create a link list of free space
++ file header contain a pointer to the first block of the free space, the first block of the free space contain a pointer to the next block of the free space, and so on
++ on insertion, we use the pointed block by the header to write the new record, and update the header to point to the next block of the free space
++ if head pointed to null, it means that there is no free space, we append record to the end of the file
++ this approach is simple is available for fix-length record, but it is not suitable for variable-length record since the size of the record can change
+
+
+13.2.2 Variable-Length Records
+- to store variable-length record, we must solve 2 problems:
++ how to extract individual record in block  
++ how to extract individual attribute in record
+
+- the layout of a record can be divided into:
+- initial part + variable-length attribute data
++ initial part: 
+* variable-length attributes are represented as "inital part" which contain the offset and length
++ offset is the distance from the beginning of the record to the beginning of the variable-length attribute
++ followed initial parts are the fixed-length attributes
+
+- null bitmap: a part of the record that indicate whether an attribute is null or not: 
++ for ex: if there are 8 attribute, we can use 1 byte to indicate whether each attribute is null or not, if the first bit is 1, it means that the first attribute is null
++ in some representtion, null bitmap is set at the start of the record which can eliminate spare space 
++ the tradeoff is that we have to constantly check the null bitmap to determine whether an attribute is null or not, which can cause performance overhead 
+
+- slotted page structure: a common way to organize variable-length record in a block, it consist of:
++ header: located at begining of the block, it contain the number of record entries, end of free space, array of location + size of each record 
++ records are allocated contiguously start from the end of the block
++ inserted record is allocated at the end of free space and the header add entries for the new record
++ when a record is deleted, its entry is set to deleted and the space is reclaimed by free space, other records are moved so that free space is between the header array and the first record again, end of free space is updated
+
+
+13.2.3 Storing Large Objects
+- b+ tree fie organization allow us to efficiently store and access large objects 
+- storing BLOB data internal coming with many problems such as efficiency or size for backup 
++ one solution is to store BLOB data in file system and store the pointer to the BLOB data in the database, but it can cause consistency problem since the pointer in the database can point to a non-existing file in the file system
++ some database support file system integration such as constraint when delete a file 
+
+
+13.3 Organization of Records in Files
+- there are serveral ways to organize records in files:
++ heap file organization: records are stored anywhere in the file where there is space, no particular order
++ sequential file organization: store in sequential order based on "search key"
++ multitable file organization: records of differents relation are stored in the same file or even in the same block to reduce cost of certain join operations
++ b+ tree file organization: records are stored in a b+ tree structure, it allow efficient search, insertion, deletion of records based on the search key
++ hashing file organization: hash function is computed  on some attribute of the record, then it will determine the block where the record is stored
+
+
+13.3.1 Heap File Organization
+- record is stored anywhere in the file, once placed, it is not usually moved
+- one option is to insert record at the end of the file
+- it important to use the for db to use the freed space from deleted record and to find block with enough space without sequential scan the whole file
+
+- free space map: contains array of entries, each store 1 byte, each entry represent a fraction f if the block is free, to calculate the f 
++ for ex: if the block have 1000 byte space 
+* first we calculate the scale fmax = 1000 / 256 = 3.9 byte/unit
+* then we calculate the fraction f, for example if there is 400 byte free space, f = 400 / 3.9 = 102.5 unit
+* so the fraction f is 102.5 / 256 = 0.4
+- free space map can still be slow for large file, there for we create a seconf layer of free space map for each 100 entries
+- for evean larger file, we continue to create higher layer of free space map
+- calculate free space on any updated would be expensive, so we can update the free space map periodically
++ such approach can cause outdated free space map, error can happen but further process is taken to deal with the error so it is acceptable
+
+
+13.3.2 Sequential File Organization
+- sequential file: processing of records in sorted order base on some "search key"
++ search key: an attribute or a set of attributes that determine the order of the records in the file, it is not necessarily be a primary key or super key
+- we chain record together by pointer
+- to minimize block access, we can physically store records that are close in order of search key
+
+- to delete a record, we simply mark the record as free and update the pointer of the previous record to point to the next record
+- to insert a record, we first find the position to insert
++ if there is enough free space in the block, we insert the record to "overflow block"
++ then we locate the record before and after the inserted record by using search key and update its pointer
+
+- sequential file organization allow fast insertion but it force to read record in sequential order which does not match the physical order of the record on the disk
+- after a while, the correspondence between the logical order of the record and the physical order of the record can become very bad, which can cause performance 
++ the file should be reorganized periodically 
+
+
+13.3.3 Multitable Clustering File Organization
