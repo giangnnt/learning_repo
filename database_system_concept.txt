@@ -1806,3 +1806,18 @@ Chapter 13: Data Storage Structures
 
 
 13.3.3 Multitable Clustering File Organization
+- clustering is a technique to store records of different relation in the same file or even in the same block by using "cluster key" to reduce cost of certain join operations
+- it can also store cluste key as "header" to reduce storage overhead
+- but it can slow other operations 
+
+
+13.3.4 Partitioning
+- partitioning: the process of dividing a large relation into smaller relations
++ provide a universal interface to access the data and translate the query into operations on the smaller relations
++ partition must not overlap
++ partition using lexicographical order so write a sub-partitioning if needed
+
+
+13.4 Data Dictionary Storage
+- dbms also store about info about relations, attributes, indexes, etc. called "metadata" in a special file called "data dictionary" or "system catalog"
+
