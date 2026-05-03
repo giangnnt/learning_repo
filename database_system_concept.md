@@ -597,20 +597,20 @@ from instructor
 - JDBC dynamically load the driver class at runtime base on the database being used
 - Driver support protocol that translate JDBC api call to database specific protocol
 
-### 5.1.1.2 Shipping SQL Statements to the Database system
+#### 5.1.1.2 Shipping SQL Statements to the Database system
 - **statement object** is used to invoke method that send sql statement to the database
 
-### 5.1.1.3 Exception and Resource Management
+#### 5.1.1.3 Exception and Resource Management
 
-### 5.1.1.4 Retrieving the Result of a Query
+#### 5.1.1.4 Retrieving the Result of a Query
 - the **Next() method** of the ResultSet object is used to iterate through the result of a query
 - its test whether there is another row in the result
 
-### 5.1.1.5 Prepared Statements
+#### 5.1.1.5 Prepared Statements
 - We can compile statments, replace real argument with placeholder ($)
 - When execute the prepared statement, we provide the real argument 
 
-### 5.1.1.6 Callable Statements
+#### 5.1.1.6 Callable Statements
 - **Callable statement** is used to call procedure or function in the database
 
 ## 5.2 Functions and Procedures
@@ -696,11 +696,14 @@ from instructor
 - `rank()` reset to 1 for each partition
 - ranking apply after group by
 
-- `percent_rank()` is defined as `(rank() - 1) / (number of tuple in the partition - 1)`, so it return a value between 0 and 1, inclusive
+- `percent_rank()` is defined as 
+$$\frac{\text{rank}() - 1}{\text{number of tuples in partition} - 1}$$
+- it return a value between 0 and 1, inclusive
     + it represent the relative distance of position of the tuple in the partition, compare to the start and the end -> thats why its domain is [0,1]
 
-- `cume_dist()` is defined as `(rank() / number of tuple in the partition)`
-    + it represent the relative position of current tuple compare to how many tuple its already pass in the partition, compare to the total number of tuple in the partition -> thats why its domain is (0,1] (include the first tuple)
+- `cume_dist()` is defined as
+$$\frac{\text{rank}()}{\text{number of tuple in the partition}}$$
+- it represent the relative position of current tuple compare to how many tuple its already pass in the partition, compare to the total number of tuple in the partition -> thats why its domain is (0,1] (include the first tuple)
 
 - `ntile(n)` devide the partition into n group, and assign a number to each tuple to indicate which group it belong to if number of tuple in the partition is not divisible by n, its priority to assign more tuple to the higher group
 
@@ -868,7 +871,7 @@ from instructor
 
 ## 7.3 Normal Forms
 
-### 7.3.3.1 Definition
+#### 7.3.3.1 Definition
 - **BCNF (Boyce-Codd Normal Form):** a relation is in BCNF mean it is eliminate all redundancy and anomoly
 - relation can archieve BCNF if it satisfy the following condition, for all functional dependencies in F+ at least one must holds:
     + a -> b is trivial: 
@@ -882,16 +885,16 @@ from instructor
 
 ## 8.1 Semi-structured Data
 
-### 8.1.1.1 Flexible Schema
+#### 8.1.1.1 Flexible Schema
 - Some database allow tuple to have different set of attribute (called wide coulumn)
 - a more stricted way to archieve flexible is to have fixed but larger number of attribute, and allow null value for attribute that are not used in a particular tuple
 
-### 8.1.1.2 Multivalued Data Types
+#### 8.1.1.2 Multivalued Data Types
 - for specialized support for arrays(spatial, raster data), postgres need extension like PostGIS
 
-### 8.1.1.3 Nested Data Types
+#### 8.1.1.3 Nested Data Types
 
-### 8.1.1.4 Knowledge Representation
+#### 8.1.1.4 Knowledge Representation
 - we use RDF (Resource Description Format) to represent knowledge in a graph form
 
 ### 8.1.2 JSON
@@ -905,19 +908,19 @@ from instructor
 
 ### 8.1.4 RDF and Knowledge Graphs
 
-### 8.1.4.1 Triple Representation
+#### 8.1.4.1 Triple Representation
 - **RDF (Resource Description Framework)** represent knowledge in a graph form, it use triple to represent the relationship between entities, a triple form is `(subject, predicate, object)`, for ex: (Alice, knows, Bob)
 - we use the keyword "resource" to indicate any thing in the real world that can be identified, it can be a person, a place, a thing, an idea...
 - Uniform Resource Identifier only focus on identifying the resource, to connect a resource to another resource we also care about network system
 - RDF only support binary relationship
 
-### 8.1.4.2 Graph Representation of RDF
+#### 8.1.4.2 Graph Representation of RDF
 - in graph, entities and attribute value are represented as node, and relationship and atribute names is represented as edge
 - object show as oval, attribute value show as rectangle
 - represent of RDF graph model is called knowledge graph
 - while erd focus on storing and retrieving data efficiently, knowledge graph focus on connecting and semantic of data through semantic labels
 
-### 8.1.4.4 Representing N-ary Relationships
+#### 8.1.4.4 Representing N-ary Relationships
 - in RDF predicate is not only a attribute name, it also a resource that can have its own attribute, semantic and relationship. By that its help reasoning
 
 ## 8.2 Object Orientation
@@ -928,7 +931,7 @@ from instructor
 
 ### 8.2.1 Object-Relational Database Systems
 
-### 8.2.1.3 Type Inheritance
+#### 8.2.1.3 Type Inheritance
 - **Type and Table Schema** is similar in concept, but different in level of abstraction
 - Table Schema ~ Composite Type + Metadata + storage 
 - In postgres dont support type inheritance, but we can use table inheritance to achieve similar effect
@@ -942,7 +945,7 @@ from instructor
 - if not effect global state (only on record, structural level) -> inherit, if effect global state -> not inherit
 - in case of update, delete: careful with the cascade effect, because it can affect the child table, which can cause data inconsistency if not handle properly
 
-### 8.2.1.4 Reference Types in SQL
+#### 8.2.1.4 Reference Types in SQL
 
 ### 8.2.2 Object-Relational Mapping (ORM)
 
@@ -958,7 +961,7 @@ from instructor
 
 ### 8.3.2 Relevance Ranking
 
-### 8.3.2.1 Ranking Using TF-IDF
+#### 8.3.2.1 Ranking Using TF-IDF
 - **term:** is the result of tokenization, normalization
 - term is a similar concept to keyword:
     + keyword focus on semantic of the word, use by human
@@ -981,7 +984,7 @@ $$r(d, Q) = \sum_{t \in Q} TF(d,t) \times IDF(t)$$
 - **stop-word:** a term that is very common and does not carry much meaning, ex: "the", "is", "and", etc. We can remove them from the document and query to improve the relevance of the search result
 - we also take account of proximity of the term in the document, because the closer the term is to each other, the more relevant they are to each other
 
-### 8.3.2.2 Ranking Using Hyperlinks
+#### 8.3.2.2 Ranking Using Hyperlinks
 - the more hyperlink point to a document, the more relevant it is
 - page that are pointed from a high rank page are more relevant than page that are pointed from a low rank page
 
@@ -1011,7 +1014,7 @@ $$\frac{\text{delta}}{N} + (1-\text{delta}) \times \sum_{i=1..N} T[i,j] \times P
 - **polygon:** a polygon is defined by a sequence of point (x1, y1),
     + polygon can devided into triangle (triangulation)
 
-### 8.4.3.2 Representation of Geographic Data
+#### 8.4.3.2 Representation of Geographic Data
 - **raster data:** a raster data is a grid of cell, each cell have a value that represent the attribute of the area covered by the cell (for ex: elevation, temperature, land use, etc.)
 - **vector data:** a vector data is a collection of geometric object, such as point, line, polygon, etc. that represent the geographic feature (for ex: road, river, building, etc.)
 - **topological data:** represent information in form of raster or vector data
@@ -1191,7 +1194,7 @@ $$\frac{\text{delta}}{N} + (1-\text{delta}) \times \sum_{i=1..N} T[i,j] \times P
     + we approach this problem by using machanism such as copy data, separate storage and query processing
     + this approach consequently lead to 2 problems: we have to write a data twice, streaming query may not have access to all data
 
-### 10.5.2.1 Stream Extensions to SQL
+#### 10.5.2.1 Stream Extensions to SQL
 - instead of a "work-around" to query streaming data by adding a timestamp to the data and use window function, we can approach this problem by streaming query language:
     + **tumbling window:** window that is non-overlapping and contiguous, it is defined by a fixed "size"
     + **hopping window:** after a "hop", create a new window with "size", for smoothing data 
@@ -1340,10 +1343,10 @@ $$\frac{\text{delta}}{N} + (1-\text{delta}) \times \sum_{i=1..N} T[i,j] \times P
 ### 11.4.2 Classification
 - **classification** is a sub set of prediction, where the task is to predict a categorical value (class) base on the value of other attribute
 
-### 11.4.2.1 Decision-Tree Classifiers
+#### 11.4.2.1 Decision-Tree Classifiers
 - we create a tree, each leaf node associated with a class and internal node has a predicate (function) that test the value of an attribute
 
-### 11.4.2.2 Bayesian Classifiers
+#### 11.4.2.2 Bayesian Classifiers
 $$P(C|X) = \frac{P(X|C) \times P(C)}{P(X)}$$
 
 - $P(C|X)$: the probability of instance with attribute value X belong to class C
@@ -1361,7 +1364,7 @@ $$P(C|X) = \frac{P(X|C) \times P(C)}{P(X)}$$
 - more generally, we can find a "dividing plane" that separate the instance from the other class in higher dimension space
 - using kernel function, we can also find a "non-linear curve" that separate the instance from the other class in higher dimension space
 
-### 11.4.2.4 Neural Network Classifiers
+#### 11.4.2.4 Neural Network Classifiers
 - **neural network** contain multiple layer of "neuron", each neuron is a function that take a weighted sum of its input and apply an activation function to produce an output
 - initially, the weight of each neuron is set randomly, if the prediction of the neural network is not correct, we can adjust the weight of each neuron using a technique called "backpropagation"
 - **deep learning:** a machine learning technique that use multiple layer of neural network and large amount of instance to learn
@@ -1696,5 +1699,85 @@ $$Y = a_0 + a_1 \times X_1 + a_2 \times X_2 + ... + a_n \times X_n$$
 ## 13.4 Data Dictionary Storage
 - dbms also store about info about relations, attributes, indexes, etc. called "metadata" in a special file called **data dictionary** or **system catalog**
 
-![system_metadata](images/system_metadata.png)
+![](images/system_metadata.png)
+> illustration of the data dictionary
 
+- when a dbms need to retrieve records, it first access ***Relation_metadata*** to get location and storage organization of the relation
+-  but ***Relation_metadata*** must be store elsewhere, might be in **database code** or **fixed location**
+- system metadata is frequently accessed, so it is usually stored **in main memory** for fast access
+
+## 13.5 Database Buffer
+- a major goal of database is to **minimize** the number of disk I/O
+- one way to achieve this goal is to keep as many block as possible in main memory 
+- **buffer** is a part of main memory that is used to store block read from disk, we also need a **buffer manager** to manage if the buffer is outdated as the block is recently updated
+
+### 13.5.1 Buffer Manager
+- if `block is in buffer` -> **return** the block's pointer to requester
+- if `block is not in buffer`:
+    + **allocate** space for new block
+    + **thown-out** other block if there is no free space in the buffer, **writen to disk** if the block is **modified**
+    + **request** the needed block from disk and store it in the buffer
+    + **return** the block's pointer to requester
+
+#### 13.5.1.1 Buffer replacement strategy
+- **Buffer manager** specifies which block is **least recently used (LRU)** to be **evicted** 
+
+#### 13.5.1.2 Pinned blocks
+- for a process to read data from a block it first must:
+    + `pin` the block in the buffer to prevent it from being evicted 
+    + `unpin` the block after it is done with the block
+- multiple process can pin the same block for read, when a process pin a block, it also increase **pin count**
+- block can only be evicted when its **pin count = 0**
+
+13.5.1.3 Shared and Exclusive Locks on Buffer
+- database system provide **two types** of lock on buffer to prevent inconsistency when multiple process access the same block:
+    + `shared lock` allow multiple process having shared lock to read on the same block
+    + `exclusive lock` allow only one process to exclusively access to the block, and not allow any process to access to the block until the exclusive lock is released
+- when a process want to **access** a block while another process have an exclusive lock, the request is **pending** until the exclusive lock is released
+- process must **pin** block before acquiring **lock** and release it before **unpin**
+
+#### 13.5.1.4 Output of blocks
+- we should not wait until the buffer space is needed to to **output** block to disk
+- instead, we can **output** block to disk periodically or when the block is modified, the process to **output** block must acquire **shared lock**
+
+#### 13.5.1.5 Forced output of blocks
+- **forced output** is the process of writing modified block to the disk to esure consistency of the data on disk
+- before write actual block to disk, we write **log** to disk first to ensure transaction have enough information to recover the data in case of failure
+
+### 13.5.2 Buffer-Replacement Strategy
+- database is able to predict partern of block access accurate than general purpose OS, base one information about the **data** and **query** being processed
+- an example is **toss-immediately** strategy: given the following SQL
+```sql
+select *
+from instructor natural join department;
+```
+- the block of **instructor** relation is read once and not needed anymore, so we can **toss** the block immediately after reading it, which can free up buffer space for other block
+- another example is **most recently used (MRU)** strategy: for each **instructor**, we need to read the corresponding **department** record as follow
+$$ R1 -> R2 -> R3 -> R4 -> R5 $$
+- we about to read **R6**, but buffer is full, we should not evict **R1 (LRU)**, instead, we should evict **R5 (MRU)** since it is most likely the last one to be accessed in the next loop
+- buffer manager can use **statistical information** to know which block is likely to be accessed in the future
+- **statistical information** can be collected by:
+    + `ANALYZE` command: it collect information about record count, block count, selectivity
+    + **monitoring & query history**
+    + **system catalogs**
+- ***index*** for a file may be accessed more frequently than the file itself, so we can give higher priority to index block than data block
+- use `EXPLAIN (ANALYZE, BUFFERS)` to see the buffer usage of a query
+    + `Shared Hit`: number of blocks is already in the buffer
+    + `Shared Read`: number of blocks is read from disk
+    + `Shared Dirtied`: number of blocks is modified in the buffer
+    + `Shared Written`: number of blocks is written to disk for to free up buffer space
+$$CacheRatio = \frac{\text{ShareHit}}{\text{ShareHit} + \text{SharedRead}} \times 100\$$
+- in **concurrency environment**: if a **request is delayed** cause other block is **locked** by another transaction, **buffer manager** can consider **evicting the other non-locked** block of the needed by the **delayed request**
+
+### 13.5.3 Reordering of Writes and Recovery
+- ***log disk***: a separate disk to store log, log is written before the actual block is written to disk in sequential order, not re-ordered (source of truth for recovery)
+- ***journaling file systems***:  a file system that keep a log of changes to the file system, can be implemented without separate log disk
+- ***systemd journaling***: a service that provide a logging for kernal, service and applications
+- file write by application are not ussually written to log disk, DBMS instead implement its **own logging mechanism**
+
+## 13.6 Column-Oriented Storage
+- **Column-oriented** is suitable for analytical query which process **many rows** but only access **few attribute**:
+    + **Reduced I/O**: only read the column that are needed for the query, not the whole row
+    + **Improved CPU cache performance**
+        * `cache line`: a unit of data that is transferred between main memory and CPU cache, it typically contain 64 bytes
+        * 
