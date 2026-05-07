@@ -241,7 +241,7 @@ r ⋈θ s = σθ (r × s)
 ### 3.2.1 Basic Types
 - `char(n)`: fixed-length character string with user specified length n
 - `varchar(n)`: variable-length character string with maximum length n
-- `int`: an integer (a finite subset of integers, machine dependent cpu architect, ram...) 
+- `int`: an integer (a finite subset of integers, machine dependent CPU architect, ram...) 
 - `numeric(p,d)`: a fixed-point number with user-specified precision. the number consist of p digits (plus sign) and d digits are to the right of the decimal point
 - `real`, `double precision`: floating point, double precision floating point with machine dependent precision
 - `float(n)` floating-point number with precision of at least n digits (n is number of bit of mantissa)
@@ -1776,8 +1776,36 @@ $$CacheRatio = \frac{\text{ShareHit}}{\text{ShareHit} + \text{SharedRead}} \time
 - file write by application are not ussually written to log disk, DBMS instead implement its **own logging mechanism**
 
 ## 13.6 Column-Oriented Storage
-- **Column-oriented** is suitable for analytical query which process **many rows** but only access **few attribute**:
-    + **Reduced I/O**: only read the column that are needed for the query, not the whole row
-    + **Improved CPU cache performance**
+- **column-oriented** is suitable for analytical query which process **many rows** but only access **few attribute**:
+    + **reduced I/O**: only read the column that are needed for the query, not the whole row
+    + **improved CPU cache performance**
         * `cache line`: a unit of data that is transferred between main memory and CPU cache, it typically contain 64 bytes
-        * 
+        * when a **CPU** need data, it will read form L1 if `Cache Miss`, it continue to read from L2, L3, until `Cache Hit`
+        * if even L3 miss, it will read from main memory, which is much slower than reading from cache
+        * when using `row-oriented`, adjacent byte contain attribute that are not needed for the query
+        * in contrast, when using `column-oriented`, CPU cache line contain byte of the same attribute, which can improve cache performance
+    + **better compression** `compression` can significantly reduce the storage space and time taken to to retrieve data. Storing same type of data together in column-oriented storage can improve compression ratio
+    + **vector processing**: a technique that allow CPU to process multiple data element in a single instruction using larger register size 125-512 bit (to be continue Vector Processing)
+- **indexing** and **query processing** in column-oriented storage can be more complex than row-oriented storage and must be designed carefully to achieve good performance
+- **column-oriented storage** also have some drawbacks:
+    + **Cost of tuple reconstruction**: reconstructing a tuple from column-oriented storage can be expensive since it multiple I/O
+    + **cost of tuple deletion and update**: 
+        * deleting or updating a tuple in column-oriented storage can result in **recalculating** the compressed data for the column, which can be expensive
+        * in data warehouse, old tuple is **bulk deleted** and new tuple **appended** to the end of relation
+    + **cost of decompression**: in ***simplest compression representations*** (without indexing,...) fetching a record need to **read** all the data **from the beginning** of the file. Which un-suitable for transaction processing query since it only need to **fetch a few record**, but it can be suitable for analytical query since it need to **fetch many record**
+- even analytical query dont need to **access all records** which are not selected by the query
+    + the solution is to use **skipping technique**, where we keep track group of records for example 1000 record
+    + for example, we need to find record at 2400, we can skip the first 2 group of record and read the third group of record
+- ***ORC***: a technique of organizing records in file into **stripes**
+    + a file contain serveral stripes, each stripe is up to about 250mb
+    + **row data** contain compressions for each attribute of records and place it consecutively space 
+    + **index data** **ORC*** offen store recors into **row group**, for example 10000 records
+        * **index data** contain the **minimum** and **maximum** value of each attribute for each row group, it allow us to skip stripe that do not contain the record we need
+        * it also contain **pointer** to the row group in the row data
+- some columnar storage allow to store **group of columns** that often accessed together to be stored together
+- there also some **hybrid storage** that allow collumn-oriented storage without using compression within a block and block contains set of tuples        
+    + it allow retrieving a tuple **without multiple disk accesses**, while provide **effient** memory access, cache and vector processing
+    + it's drawback is that, when we need to access only a few attribute of a tuple, we still need to read the **whole block** which 
+    + another drawback is that it can't archive benefits of **compression**
+## 13.7 Storage Organization in Main-Memory Databases
+- 
