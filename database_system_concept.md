@@ -1598,10 +1598,9 @@ $$Y = a_0 + a_1 \times X_1 + a_2 \times X_2 + ... + a_n \times X_n$$
 - reordering disk I/O request can become inconsistent,
 
 # Chapter 13: Data Storage Structures
-
 ## 13.1 Database Storage Architecture
-
 ## 13.2 File Organization
+
 - **file:** organized logically as a sequence of records, records are mapped onto disk blocks
 - file also logically partitioned into "blocks", most dbms use fixed size block of 4KB or 8KB
 - block may contain multiple record, in this case, we assume that is no bigger than a block, in reality, record can be larger if it is special type of record such as image
@@ -1678,8 +1677,8 @@ $$Y = a_0 + a_1 \times X_1 + a_2 \times X_2 + ... + a_n \times X_n$$
 
 - to delete a record, we simply mark the record as free and update the pointer of the previous record to point to the next record
 - to insert a record, we first find the position to insert
-    + if there is enough free space in the block, we insert the record to "overflow block"
-    + then we locate the record before and after the inserted record by using search key and update its pointer
+    + if there is enough free space in the block, we insert the record to **overflow block**
+    + then we locate the record which came before and after the inserted record by using search key and update its pointer
 
 - sequential file organization allow fast insertion but it force to read record in sequential order which does not match the physical order of the record on the disk
 - after a while, the correspondence between the logical order of the record and the physical order of the record can become very bad, which can cause performance 
@@ -1729,7 +1728,7 @@ $$Y = a_0 + a_1 \times X_1 + a_2 \times X_2 + ... + a_n \times X_n$$
 - multiple process can pin the same block for read, when a process pin a block, it also increase **pin count**
 - block can only be evicted when its **pin count = 0**
 
-13.5.1.3 Shared and Exclusive Locks on Buffer
+#### 13.5.1.3 Shared and Exclusive Locks on Buffer
 - database system provide **two types** of lock on buffer to prevent inconsistency when multiple process access the same block:
     + `shared lock` allow multiple process having shared lock to read on the same block
     + `exclusive lock` allow only one process to exclusively access to the block, and not allow any process to access to the block until the exclusive lock is released
@@ -1807,5 +1806,61 @@ $$CacheRatio = \frac{\text{ShareHit}}{\text{ShareHit} + \text{SharedRead}} \time
     + it allow retrieving a tuple **without multiple disk accesses**, while provide **effient** memory access, cache and vector processing
     + it's drawback is that, when we need to access only a few attribute of a tuple, we still need to read the **whole block** which 
     + another drawback is that it can't archive benefits of **compression**
+
 ## 13.7 Storage Organization in Main-Memory Databases
-- 
+ - ***main-memory database*** is that store all data in main memory, remove entirely the **buffer manager**
+ - it can significantly improve performance since it remove the cpu cycle needed of **check** if the record in the block, **finding** where is it located in the block and if not **read** the block from disk
+- **slotted memory** structure is not suitable for main-memory database since it require **2 layer of indirection** to access a record and **locking** the block to ensure **not reading** records when its **moving arround** due to **update** and **delete**
+- **direct access** to record is **not allow moving record** around since doing it, we must update all pointer to the record, which can be expensive
+- the db must ensore that main-memory is not **fragmented over time** either by using **suitably** designed memory or performing **compaction** periodically 
+- column-oriented can store all value of an attribute in consecutive memory location. But if we need to append new record, existing record may need to be moved which can be expensive, so we can use **indirection table** to store the pointer to the physical array location of the attribute value
+
+# Chapter 14: Indexing
+## 14.1 Basic Concepts
+-  we should not implement `index` on the relation in a sorted order of `id` directly like in book index since:
+    + the `index` it self would be too large
+    + `sorted index` reduce search time but it can still be rather time consuming
+    + **update** sorted index can cause overhead since we need to **reorder** the index after each update
+- there are two main type of index:
+    1. `ordered indices` based sorted ordering values
+    2. `hash indices` 
+        + `hash function` mapping input key -> output to determine the location of the record in the index.
+            * **deterministic** the same input alway provide the same output
+            * if there are multiple input key mapping to the same output, it is called `collision`
+            * **fix-length** output
+            * **uniform distribution** the output should be equally distributed across the output space, minimize the chance of collision
+            * **diffusion** small change in the input key should cause large change in the output
+            * **one-way** (security) it hard to reverse the hash function to get the input key from the output
+            * **efficieny** the hash function should be fast to compute
+        + **bucket** storage unit which assgined to a hash function output, it can contain multiple value in case of collision
+- there are serveral techniques for ordered indexing, each suited for serveral applacations and must be considered though these factors:
+    + ***access types*** access types can fall into two categories, **point query** and **range query**
+    + ***access time*** time to find a particular data items
+    + ***insertion time*** time take to insert new data, includes time to **find** correct location to insert and time to **reorder** the index if needed
+    + ***deletetion time*** time take to delete data, includes time to **find** the data to delete and time to **reorder** the index if needed
+    + ***space overhead*** space take to occupied by index structure, it is worthwhile to sacrifice the space to achieve improved performance
+- an attribute or set of attribute can define as a `search key` 
+
+## 14.2 Ordered Indices
+- in **ordered index**, **search key** is stored in **sorted** order, each search key value is associated with records that contain it
+- `clustering index` or `primary index` is refer to index on the search key that is also a the define the physical order of the record in the file
+- `non-clustering index` or `secondary index` is refer to index on the search key that is not the define the physical order of the record in the file
+- in `postgres`, using 
+```sql
+CLUSTER users USING idx_user_created_at;
+```
+- to clustering index base on `created_at` index but it is **not automatically** maintain the clustering index and its access exclusive lock on the table
+- file with clustering index on search key are called ***index-sequential files***
+
+### 14.2.1 Dense and Sparse Indices
+- `index entry` or `index record` consist of **search key** and **pointer** to a or set of record that contain the search key value
+- **pointer** consist of **block identifier** and **offset** of the record in the block
+- there are two type of index:
+    + `dense index`: **index entry** appear for every **search key** value in the file
+        * in `dense clustering index` **pointer** point to the first record with the **search key**, the rest same **search key** value record would be stored sequentially in the file, sorted 
+        * in `dense non-clustering index` index must store pointer to all record with the same search key value
+    + `sparse index`: **index entry** appear for only some **search key** value in the file, the index must be **clustering index** since it can only be use when the relation is stored in sorted order of the **search key**
+    - `dense index` faster when lookup for a a record but with higher space, insertio, deletion overhead compared to `sparse index`
+    - to balance out the tradeoff, we can use `spare index` with one index entry per block to minimize the **dominant cost** of bringing a block into memory but also reduce the **space overhead**
+
+### 14.2.2 Multilevel Indices
