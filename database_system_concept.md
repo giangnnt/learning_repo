@@ -1641,7 +1641,7 @@ $$Y = a_0 + a_1 \times X_1 + a_2 \times X_2 + ... + a_n \times X_n$$
     + when a record is deleted, its entry is set to deleted and the space is reclaimed by free space, other records are moved so that free space is between the header array and the first record again, end of free space is updated
 
 ### 13.2.3 Storing Large Objects
-- b+ tree fie organization allow us to efficiently store and access large objects 
+- $B^+$ tree fie organization allow us to efficiently store and access large objects 
 - storing BLOB data internal coming with many problems such as efficiency or size for backup> 
     + one solution is to store BLOB data in file system and store the pointer to the BLOB data in the database, but it can cause consistency problem since the pointer in the database can point to a non-existing file in the file system
     + some database support file system integration such as constraint when delete a file 
@@ -1651,7 +1651,7 @@ $$Y = a_0 + a_1 \times X_1 + a_2 \times X_2 + ... + a_n \times X_n$$
     + heap file organization: records are stored anywhere in the file where there is space, no particular order
     + sequential file organization: store in sequential order based on "search key"
     + multitable file organization: records of differents relation are stored in the same file or even in the same block to reduce cost of certain join operations
-    + b+ tree file organization: records are stored in a b+ tree structure, it allow efficient search, insertion, deletion of records based on the search key
+    + $B^+$ tree file organization: records are stored in a $B^+$ tree structure, it allow efficient search, insertion, deletion of records based on the search key
     + hashing file organization: hash function is computed on some attribute of the record, then it will determine the block where the record is stored
 
 ### 13.3.1 Heap File Organization
@@ -1864,3 +1864,93 @@ CLUSTER users USING idx_user_created_at;
     - to balance out the tradeoff, we can use `spare index` with one index entry per block to minimize the **dominant cost** of bringing a block into memory but also reduce the **space overhead**
 
 ### 14.2.2 Multilevel Indices
+- if data grow large, access time and space of the index it self can become a problem, to deal with this problem, we can use `multilevel index` which is an **index** on the **index**
+- we create an `outer index` which is spare and `inner index` must be sorted by search key value
+
+### 14.2.3 Index Update
+- whenever there is an update, inser or delete, index must be **updated correspondingly**
+
+#### 14.2.3.1 Insertion
+1. **dense indices**:
+    - if the search key not appear in the index, system insert an index entry with the search key value in the index
+    - if it **non-clustering** index, system also add new pointer to the new record in the index entry
+    - if it **clustering** index, system place the new record after other record with the same search key value
+2. **sparse indices**: 
+    - if system **create new block**, it insert the first search key value of the block into the index
+    - if inserted in **existing block**, it **compare** and if inserted record have smaller search key value, then the index entry update to point to the new record. Otheriwse, there is no change in the index entry
+
+#### 14.2.3.2 Deletion
+1. **dense indices**:
+    - if deleted record is the only record with the search key, then the system delete the corresponding index entry 
+    - if in **non-clustering**, the index entry must be updated to remove the pointer to the deleted record
+    - if in **clustering**, the system must update the index entry to point to the next record with the same search key value
+2. **sparse indices**: 
+    - if the index not contain the search key value of the deleted record, there is no change in the index
+    - if there was only one record with the **same** search key and have records with **coresponding** search key, the system update the index entry to point to the next record in search key order
+    - if there is no record with **corresponding** search key, the system delete the index entry
+    - if there are multiple record with the **same** search key, the system update the index entry to point to the next record with the same search key value
+
+### 14.2.4 Secondary Indices
+- **secondary index** must be **dense** since it not describe the physical order of the record in the file
+- if the **search key** of clustering index is not unique, we can point the index entry to the first record with the search key value since the rest of the record with the same search key value are stored sequentially in the file
+- if `candidate key` and `clustering` 
+    + `spare` reduce space overhead, write perfomance but it can cause read performance
+    + `dense` can provide better read performance
+- if `candidate key` and `non-clustering` -> must be `dense` 
+- if `non-candidate key` and `clustering` 
+    + `spare` reduce space overhead, write perfomance, and read performance since all record with the same search key value are stored sequentially in the file
+    + `dense` should not be choosen
+- if `non-candidate key` and `non-clustering` -> must be `dense`
+- **non-clustering** index improve performance of query that dont use the search key of the clustering index, but it can cause performance overhead on modification
+
+### 14.2.5 
+- `composite search key`: search key that contain multiple attribute and is ***lexicographic ordering***
+
+## 14.3 $B^+$ Tree Index Files
+- `balanced tree`: the tree which every leaf have the same ***depth***
+
+### 14.3.1 Structure of $B^+$ Tree
+- $B^+$ tree, takes the form of `balanced tree`
+- $n$ can be calculate by the following formula:
+$$n = \frac{\text{block size}}{\text{size of search key} + \text{size of pointer}}$$
+- average $n \approx 255$ 
+- a typical $B^+$ node contain up to **$n-1$** search key value ***K*** and **$n$** pointer ***P***
+- search key value are kept **sorted**
+1) `leaf node`
+    - contain contain such amount of search key value $K$ that
+    $$\frac{n-1}{2} \le K \le n-1$$
+    - and contain $P$ pointer that
+    $$\frac{n-1}{2}+1 \le K \le n$$
+    - $B^+$ tree is usually **dense index**, so each search key value in the leaf node is associated with a pointer to the record with the search key value
+    - The $P_n$ pointer in the leaf node is used to point to the **next leaf node**, which allow us to efficiently find record with range of search key value
+2) `internal node` also known as `non-leaf node`
+    - contain the search key value $K$ that
+    $$\frac{n}{2}-1 \le K \le n-1$$
+    - contain the number of pointer $P$ that
+    $$\frac{n}{2} \le P \le n$$
+    - the reason for the different range of search key value and pointer in leaf node and internal node is that leaf node $P_n$ is used to point to the next leaf node
+    - so calculation of $P_{min}$ in leaf node is different: there are max $n-1$ search key value so $P_{min} = \frac{n-1}{2}$ then $+ 1$ for the pointer to the next leaf node 
+    - for example a node contain **$m$** pointers ($m \le n$)
+        + the node contain up to $m-1$ search key value
+        $$(P_1, K_1, P_2, K_2,..., P_{m-1}, K_{m-1}, P_m)$$
+        + most left pointer $P_1$ point to the subtree with search key value less than $K_1$
+        $$V < K_1$$
+        + middle pointer $P_i$ point to the subtree with search key value greater than or equal to $K_{i-1}$ and less than $K_i$
+        $$K_{i-1} \le V < K_i$$
+        + most right pointer $P_m$ point to the subtree with search key value greater than or equal to $K_{m-1}$
+        $$V \ge K_{m-1}$$
+3) `root node` have the number of pointer $P$ can go lower than $\frac{n}{2}$, but it must have at least 2 pointer (1 reason is I/O optimization)
+- $B$ in $B^+$ tree refer to ***balanced***
+- $B^+$ require being ***balanced***, meaning every path from root to a leaf is the same to ensure good performance for search, insertion, deletion (continued Bottom growth up )
+- there are ways to handle non-unique search key value in $B^+$ tree:
+    + we can **store duplication** of search key value in the leaf node, but it can create duplication of search key value in the internal node which can cause performance overhead on insertion and deletion
+    + another way is to use **bucket** but it can cause performance overhead on search key which have many duplication
+    + most database implement do the following: internally, **add extra attribute** (which guarantee uniqueness) to the search key
+
+### 14.3.2 Queries on $B^+$ Tree
+- at **leaf level**, if there are $K_i = v$, $P_i$ is return as pointer to the record with search key value $v$ 
+- if there are no such condition found, it return **null**, which indicate that there is no record with the search key value in the tree
+- **$B^+$ tree** can also be used to find records with range $[lb, ub]$ (lb: lower bound, ub: upper bound)
+    + we first travel down the tree to find the leaf node that may or may not contain the search key value $lb$
+    + it then scan the leaf node and subsequent leaf node to find which search key value satisfy the condition $lb \le K_i \le ub$ and colect the pointers
+    + the scan top of it meet the condition $K_i > ub$ or there are no more keys in tree
