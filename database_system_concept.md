@@ -1913,7 +1913,7 @@ CLUSTER users USING idx_user_created_at;
 - $B^+$ tree, takes the form of `balanced tree`
 - $n$ can be calculate by the following formula:
 $$n = \frac{\text{block size}}{\text{size of search key} + \text{size of pointer}}$$
-- average $n \approx 255$ 
+- average $n \approx 200$ with 
 - a typical $B^+$ node contain up to **$n-1$** search key value ***K*** and **$n$** pointer ***P***
 - search key value are kept **sorted**
 1) `leaf node`
@@ -1948,9 +1948,96 @@ $$n = \frac{\text{block size}}{\text{size of search key} + \text{size of pointer
     + most database implement do the following: internally, **add extra attribute** (which guarantee uniqueness) to the search key
 
 ### 14.3.2 Queries on $B^+$ Tree
-- at **leaf level**, if there are $K_i = v$, $P_i$ is return as pointer to the record with search key value $v$ 
-- if there are no such condition found, it return **null**, which indicate that there is no record with the search key value in the tree
+- consider how query to find record with search key value **$v$** is processed in $B^+$ tree:
+    - the current node is examinated
+        - we finding the smallest $i$ such that $v \le K_i$
+        - if $v = K_i$ then the current is now node pointed by $P_{i+1}$
+        - if $v < K_i$ then the current node is now node pointed by $P_i$
+        - if there is no such $K_i$ found, mean that $v > K_{m-1}$, so the current node is now node pointed by $P_m$
+    - at **leaf level**, if there are $K_i = v$, $P_i$ is return as pointer to the record with search key value $v$ 
+    - if there are no such condition found, it return **null**, which indicate that there is no record with the search key value in the tree
 - **$B^+$ tree** can also be used to find records with range $[lb, ub]$ (lb: lower bound, ub: upper bound)
     + we first travel down the tree to find the leaf node that may or may not contain the search key value $lb$
     + it then scan the leaf node and subsequent leaf node to find which search key value satisfy the condition $lb \le K_i \le ub$ and colect the pointers
     + the scan top of it meet the condition $K_i > ub$ or there are no more keys in tree
+- after traverse down to the leaf, there also I/O cost to **access the record** through pointer
+- especially for range query, for M pointer need to be retrieved, we need to access at most the amount of leaf node that:
+$$\frac{M}{(n/2)}+1$$
+- there also the cost to **fetch** the actual record with M random I/O needed in the worst case
+- **clustering index** can significantly reduce the cost of fetching the actual record since record with similar search key value are stored together
+
+### 14.3.3 Updates on $B^+$ Tree
+- **insertion** and **deletion** is more complex than **search** since it require while also maintaining the properties of $B^+$ tree such as being **balanced**
+    - ***split*** a node when it become too large
+    - ***coalesce*** when number of pointers become $\le \frac{n}{2}$
+- assuming that no node is too large or too small, the insertion and deletion is performed as follow:
+    + for **insertion**, we first **find** the leaf node where the new record should be inserted, then we **insert** the new record into the leaf node such that search key are still **in order**
+    + for **deletion**, we lookup where all the entries with the associated search key value are located, then we **delete** the entries and shift the remaining entries to fill the gap
+
+#### 14.3.3.1 Insertion
+- we take $n$ (n-1 search key value plus inserted search key value)
+and and put $\frac{n}{2}$ search key value in the original node other $\frac{n}{2}$ search key value in the newly created node
+- the newly created node also need an entry in the parent node, we follow beblow procedure to insert the new entry in the parent node:
+    - we copy the smallest search key value in the newly created node **insert** into the parent node as the new entry, place at the correct position to maintain the order of search key value in the parent node
+    - it's left pointer **point** to the original node
+    - it's right pointer (old pointer) **updated** to pointed to the newly created node
+
+![](images/before_insertion.png)
+> illustration of $B^+$ tree before insertion
+
+![](images/after_insertion.png)
+> illustration of $B^+$ tree after insertion
+
+- splitting on **internal node** is a little bit different from **leaf node**, below is the illustrations
+- a node child need to be splitted and insert a new entry to the parent node, but the parrent node is currently full
+    - the parent node conceptually expanded temporarily, added the entry and become ***overfull***
+    - the node then **splitted immediately**
+    - the **original node** take pointers $P_1...P_m$ where $m = \frac{n+1}{2}$
+    - the **newly created node** take pointers $P_{m+1}...P_{n+1}$
+    - key value between those pointer is separated accordingly
+    - the **key value** between $P_m$ and $P_{m+1}$, $K_m$ is **pushed up** to the parent node as the new entry, it is important to note that this key value is **not duplicated** 
+
+![](images/before_internal_insertion.png)
+> illustration of $B^+$ tree before internal node insertion
+
+![](images/after_internal_insertion.png)
+> illustration of $B^+$ tree after internal node insertion
+
+#### 14.3.3.2 Deletion
+- when delete an entry and cause the tree nodes to contain too few entries, we can either **merge** or **redistribute** the entries in the nodes
+    - we first **look up** for the entry to delete, then we **delete** the entry and its **search key value** from the leaf node
+    - if the leaf node became **underfull** ($n_{pointers} < min_{pointers}$)
+    - we try either **merge** or **redistribute** the entries in the leaf node with its sibling node
+    - in example, we can **merge** with the left sibling since $sum_{pointers}$ of two nodes $< max_{pointers}$
+    - we then **move** the entries and its pointer to the left sibling node, and **delete** the empty node
+    - in example, the **parent internal node** entry with search key value "Srinivasan" is also deleted
+- the **internal node** now also become underfull, then we continue to either **merge** or **redistribute** the entries in the internal node with its sibling node
+    - such that the $sum_{pointers}$ of two nodes $> max_{pointers}$, we perform **redistribution** 
+    - we perform a **rotation** of the **internal node** and its **parent**
+    1) we move the **most left pointer** to the **underfull node**, the **underfull** now contain 2 pointers with no **search key value**
+    2) we **move down** the **separator** search key value in the **parent** between the two **pointers**
+    3) the **correct separator** of the two nodes is now the **most right search key value**, we **move up** the **most right search key value** to the **parent** as the new separator and update its pointer correspondingly
+
+![](images/before_internal_insertion.png)
+> illustration of $B^+$ tree before internal node deletion
+
+![](images/after_deletion.png)
+> illustration of $B^+$ tree after deletion of entry “Srinivasan”
+
+- we next consider the case of **redistribution** with the **leaf node** 
+    - the visualization show that after deletion of "Singh" and "Wu", the leaf node become **underfull** 
+    - we then **redistribute** the entries by moving the most right entry of the left sibling 
+    - the **moved** entry now is the **smallest search key value** in the leaf node, so we **update** the parent node entry to point to the moved entry and its value
+
+![](images/redistribution_leaf_node.png)
+> illustration of $B^+$ tree before and after deletion of "Singh" and "Wu"
+
+- we then perform deletion of "Gold" entry:
+    - the deletion make leaf node **underfull**, but borrow from the right sibling will also make the right sibling **underfull**, so we perform **merge** instead of **redistribution**
+    - after **merge**, the **parent separator** "Kim" is now not needed, so we **delete** the "Kim" entry from the parent node and its **right pointer**
+    - now, the parent node now also become **underfull** since having 1 **most left pointer** and having **no key** (not useful and violationg root must have 2 children) so we **rotate** by **push down** the root node
+    - still after the **rotation** parent node is **underfull** since it only have 1 pointer, so we **merge** the parent node with its sibling node, and **delete** the empty node 
+    > bring tree height down by 1 
+
+![](images/after_gold_deletion.png)
+> illustration of $B^+$ tree after deletion of "Gold"
