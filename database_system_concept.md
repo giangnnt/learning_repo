@@ -2004,19 +2004,19 @@ and and put $\frac{n}{2}$ search key value in the original node other $\frac{n}{
 > illustration of $B^+$ tree after internal node insertion
 
 #### 14.3.3.2 Deletion
-- when delete an entry and cause the tree nodes to contain too few entries, we can either **merge** or **redistribute** the entries in the nodes
-    - we first **look up** for the entry to delete, then we **delete** the entry and its **search key value** from the leaf node
+- when delete an entry and cause the tree nodes to contain too few entries, we can either merge or **redistribute** the entries in the nodes
+    - we first look up for the entry to delete, then we delete the entry and its **search key value** from the leaf node
     - if the leaf node became **underfull** ($n_{pointers} < min_{pointers}$)
-    - we try either **merge** or **redistribute** the entries in the leaf node with its sibling node
-    - in example, we can **merge** with the left sibling since $sum_{pointers}$ of two nodes $< max_{pointers}$
-    - we then **move** the entries and its pointer to the left sibling node, and **delete** the empty node
+    - we try either merge or redistribute the entries in the leaf node with its sibling node
+    - in example, we can merge with the left sibling since $sum_{pointers}$ of two nodes $< max_{pointers}$
+    - we then move the entries and its pointer to the left sibling node, and delete the empty node
     - in example, the **parent internal node** entry with search key value "Srinivasan" is also deleted
-- the **internal node** now also become underfull, then we continue to either **merge** or **redistribute** the entries in the internal node with its sibling node
-    - such that the $sum_{pointers}$ of two nodes $> max_{pointers}$, we perform **redistribution** 
+- the **internal node** now also become underfull, then we continue to either merge or redistribute the entries in the internal node with its sibling node
+    - such that the $sum_{pointers}$ of two nodes $> max_{pointers}$, we perform redistribution 
     - we perform a **rotation** of the **internal node** and its **parent**
-    1) we move the **most left pointer** to the **underfull node**, the **underfull** now contain 2 pointers with no **search key value**
-    2) we **move down** the **separator** search key value in the **parent** between the two **pointers**
-    3) the **correct separator** of the two nodes is now the **most right search key value**, we **move up** the **most right search key value** to the **parent** as the new separator and update its pointer correspondingly
+    1) we move the **most left pointer** to the **underfull node**, the **underfull** now contain 2 pointers with no search key value
+    2) we move down the **separator** search key value in the **parent** between the two **pointers**
+    3) the **correct separator** of the two nodes is now the **most right search key value**, we move up the **most right search key value** to the **parent** as the new separator and update its pointer correspondingly
 
 ![](images/before_internal_insertion.png)
 > illustration of $B^+$ tree before internal node deletion
@@ -2024,20 +2024,72 @@ and and put $\frac{n}{2}$ search key value in the original node other $\frac{n}{
 ![](images/after_deletion.png)
 > illustration of $B^+$ tree after deletion of entry “Srinivasan”
 
-- we next consider the case of **redistribution** with the **leaf node** 
+- we next consider the case of redistribution with the **leaf node** 
     - the visualization show that after deletion of "Singh" and "Wu", the leaf node become **underfull** 
-    - we then **redistribute** the entries by moving the most right entry of the left sibling 
-    - the **moved** entry now is the **smallest search key value** in the leaf node, so we **update** the parent node entry to point to the moved entry and its value
+    - we then redistribute the entries by moving the most right entry of the left sibling 
+    - the moved entry now is the **smallest search key value** in the leaf node, so we update the parent node entry to point to the moved entry and its value
 
 ![](images/redistribution_leaf_node.png)
 > illustration of $B^+$ tree before and after deletion of "Singh" and "Wu"
 
 - we then perform deletion of "Gold" entry:
-    - the deletion make leaf node **underfull**, but borrow from the right sibling will also make the right sibling **underfull**, so we perform **merge** instead of **redistribution**
-    - after **merge**, the **parent separator** "Kim" is now not needed, so we **delete** the "Kim" entry from the parent node and its **right pointer**
-    - now, the parent node now also become **underfull** since having 1 **most left pointer** and having **no key** (not useful and violationg root must have 2 children) so we **rotate** by **push down** the root node
-    - still after the **rotation** parent node is **underfull** since it only have 1 pointer, so we **merge** the parent node with its sibling node, and **delete** the empty node 
+    - the deletion make leaf node **underfull**, but borrow from the right sibling will also make the right sibling **underfull**, so we perform merge instead of redistribution
+    - after merge, the **parent separator** "Kim" is now not needed, so we delete the "Kim" entry from the parent node and its right pointer
+    - now, the parent node now also become **underfull** since having 1 **most left pointer** and having **no key** (not useful and violationg root must have 2 children) so we **rotate** by push down the root node
+    - still after the **rotation** parent node is **underfull** since it only have 1 pointer, so we merge the parent node with its sibling node, and delete the empty node 
     > bring tree height down by 1 
 
 ![](images/after_gold_deletion.png)
 > illustration of $B^+$ tree after deletion of "Gold"
+
+### 14.3.4 Complexity of $B^+$ Tree Updates
+- the cost of insertion and deletion is **proportional** to height of $B^+$ tree since it vert expensive
+- in worst case, the cost of insertion and deletion is $log_{\frac{n}{2}}(N)$
+- even in the worst case, average updated will require **little more than 1** I/O since most of internal node is in the buffer likely already in the buffer if $B^+$ tree is frequently accessed
+- with fanout $n = 100$, given the table with 5 million records
+
+$$\frac{5000000}{100} + \frac{50000}{100} + \frac{500}{100}= 50505 \text{ pointers in internal node}$$
+
+- assume with each 100 pointers, we can fit in one block size of 4kb, space needed for contain all internal node is about 
+$$\frac{50505}{100} \times 4 \text{ KB} \approx 2 \text{ MB}$$
+
+- modern storage system with gigabytes of memory can easily keep 2MB in the buffer, so most of the internal node is likely already in the buffer
+
+- node can be expected to be mote than $2/3$ full with random insertions since node are more likely to be access again when randomly inserted (with sequential insertion, inserted node are not likely to be access again)
+
+### 14.3.5 Nonunique Search Keys
+- in previous example, we assume that search key value is unique by adding extra attribute to the search key
+- extra attribute which in unique between record is called **uniquifier** 
+- if we wish to support non-unique search key value without adding extra attribute, we can use **bucket** approach, this maintain space efficiency but also come with disavantage:
+    - need extra management with bucket, variable size, bucket that too large for block and store in another block
+- another option is to store search key value for each record, however, this solution make handling split and merge significantly more complex and have higher space overhead
+- the complexity of deletion have major increase,
+    - suppose wish to delete a particular record with search key value $v$
+    - but there may be multiple leaf node that contain the search key value $v$
+    - we need to scan through all the leaf node that contain the search key value $v$ to find the record to delete
+    - in the worst case, we may need to scan through all the leaf node that contain the search key value $v$, which result to O(N) time complexity 
+
+## 14.4 $B^+$ Tree Extensions
+### 14.4.1 $B^+$ Tree File Organization
+- the main drawback of `index-sequential file organization` is that performance degradation as the file grow since index and actual record order become out of sync
+- by using `B+ tree file organization`, where the actual record is stored in the leaf node of the $B^+$ tree
+    - in insertion, if the node is full, we attempt to redistribute the record with its sibling node, if redistribution is not possible since sibling node is also full:
+    - we take node and adjacent node which are full, split them into 3 node 
+    - now each of the 3 node is about 2/3 full
+    - the deletion is basically the reverse of insertion, each node guaranted to having atleast $\frac{(m-1) \times n}{m}$ entries
+- an index rebuild is needed as the file grow and logical order and physical order become missmatch
+- reindex might use bulk loading technique to guarantee OS to find contiguous space for the index
+
+### 14.4.2 Secondary Indices and Record Relocation
+- a record may change location even if its do not having any update (merge, split,...)
+- secondary index must lookup and update to reflect the new location of the record which need for many I/O operation
+- to avoid this problem, we can use **indirection** by storing primary key value in the leaf node of the secondary index instead of pointer to the record
+    - to find list of `ids` with search key value $v$ in the secondary index
+    - then using `ids` to lookup the record in the primary index
+    - the drawback of this approach is that it require extra I/O to lookup the record in the primary index
+
+### 14.4.3 Indexing Strings
+- creating index on string attribute raise 2 problems:
+    1. string can be of variable length -> more complex to manage node's operation such as split and merge since the number of search key value in a node can vary
+    2. string can be very long -> lower fanout and higher height of the tree
+- to deal with the problem of variable length, we can use **prefix compression**: store only the prefix of the string that is needed to distinguish it from other string in the non-leaf node
