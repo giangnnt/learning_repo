@@ -1858,7 +1858,7 @@ CLUSTER users USING idx_user_created_at;
 - there are two type of index:
     + `dense index`: **index entry** appear for every **search key** value in the file
         * in `dense clustering index` **pointer** point to the first record with the **search key**, the rest same **search key** value record would be stored sequentially in the file, sorted 
-        * in `dense non-clustering index` index must store pointer to all record with the same search key value
+        * in `dense non-clustering index` index must store pointer to all record with successive search key value
     + `sparse index`: **index entry** appear for only some **search key** value in the file, the index must be **clustering index** since it can only be use when the relation is stored in sorted order of the **search key**
     - `dense index` faster when lookup for a a record but with higher space, insertio, deletion overhead compared to `sparse index`
     - to balance out the tradeoff, we can use `spare index` with one index entry per block to minimize the **dominant cost** of bringing a block into memory but also reduce the **space overhead**
@@ -1901,7 +1901,7 @@ CLUSTER users USING idx_user_created_at;
     + `spare` reduce space overhead, write perfomance, and read performance since all record with the same search key value are stored sequentially in the file
     + `dense` should not be choosen
 - if `non-candidate key` and `non-clustering` -> must be `dense`
-- **non-clustering** index improve performance of query that dont use the search key of the clustering index, but it can cause performance overhead on modification
+- **non-clustering** index improve performance of query using attribute other than search key of the clustering index, but it can cause performance overhead on modification
 
 ### 14.2.5 
 - `composite search key`: search key that contain multiple attribute and is ***lexicographic ordering***
@@ -2093,3 +2093,69 @@ $$\frac{50505}{100} \times 4 \text{ KB} \approx 2 \text{ MB}$$
     1. string can be of variable length -> more complex to manage node's operation such as split and merge since the number of search key value in a node can vary
     2. string can be very long -> lower fanout and higher height of the tree
 - to deal with the problem of variable length, we can use **prefix compression**: store only the prefix of the string that is needed to distinguish it from other string in the non-leaf node
+
+### 14.4.4 Bulk Loading of $B^+$ Tree Indices
+- when building a index which larger than main memory, random insertion can cause database to repeatedly fetching and evicting data block (page thrashing)
+- **bulk loading** is an efficient method to perform large insertion of an index as follows:
+    - create a temporary file containing index entries
+    - sort file base on seach key 
+    - sequentially insert entries from file into the index
+- benefit of **sort** before insertion:
+    - each leaf node involve in only one I/O operation
+    - if succesive leaf node are located in successive disk block, we can minimize time taken for I/O operation
+- if B+ tree is empty, we can directly build the tree **bottom up**, called `bottem-up B+ tree construction`
+    - we first sort entries 
+    - then break sorted entries into blocks, keep as much as possible entries in each block -> result in leaf level 
+    - the least search key value in each block is then used to build the internal node level, we repeat the process until we reach the root node
+- it is recommended to use **drop** the index before large insertion and **recreate** the index to take advantage of **bulk loading**
+
+### 14.4.5 $B$ Tree Index Files
+- a $B$ tree is similar to $B^+$ tree but with the following difference:
+    - $B$ tree eliminates redundancy of search key, reduce space overhead
+    - $B^+$ tree store every search key value in the leaf node, and some duplication stored in the internal node
+    - to archive this, $B$ tree store addition pointer in the internal node for each search key value to point to the record corresponding 
+- $B$ tree can help to reduce time finding specific record but increase the time to find most number of record as number of pointer in the internal node is reduced, which can increase the height of the tree
+- deletion and insertion in $B$ tree are more complicated than $B^+$ tree
+
+### 14.4.5 Indexing on Flash Storage
+- write operation on flash storage is more expensive since it it dont permit to `in-place update`
+- instead, every update require turn to be a combination of **copy** old page, read and modified its data and **write** back to another page on the flash storage, old page is marked as invalid
+- old page need to be **erased**, but erase operation is done at level `block`, which is 256-512 pages, so we need to **copy** all valid page in the block to another block before erasing the block
+- a `block` is the smallest nit of data that hardware can interact with, block size can varries bettween different hardware (storage/file system)
+- a `page` is the smallest unit of data which OS can interact with, page size is **fixed** and typically 4KB (memory management)
+- `page` is used as a **middleman** to interact with hardware easily
+- **bulk loading** still improve insertion significantly, it minimize `write amplification` when writing to leaf node, also internal node splitting reduce when **bottom-up construction**
+- to minimize erase operation there are several approach:
+    - add `buffer` at higher level and apply update in batch to minimize write amplification
+    - `log-structured merge tree`, the idea is create multiple tree and merge them (to be continued)
+
+### 14.4.7 Indexing in Main Memory
+- unlike disk-based storage, main-memory is costlier, so that data structure being used is design to reduce space even if its trade off with I/O operation or dept of the tree
+- the relation ship between cache and main memory is similar to the relationship between main memory and disk, problem and optimization solution is also similar, but its is configered for different scale
+- $B^+$ tree with node fit in cache line perform better than binary tree and ordinary $B^+$ tree
+- a tree-structured **within** node is also use to minimize linearly scan or binary search, and reduce cache misses
+
+## 14.5 Hash Indices
+- bucker: a unit of storage that can store on or more record
+    - in memory base, bucket can be implemented as a linked list of index entries or records
+    - in disk base, bucket can be linked list of disk block
+- hash file organization: buckets store **actual records** instead of pointer
+- to insert a record with search key value $K_i$ we first calculate the hash function:
+$$h(K_i) = i$$
+- with $i$ is the bucket number at offset $i$, $h$ is the hash function
+- then we add index entry to list at the bucket $i$ 
+- note that in this example, we use linked list (overflow chaining) as **colission** handling but there many other data structure can be used
+- hash using use **overflow chaining** are called **closed addressing** which is different from **open addressing**
+    - in **closed addressing**, when a collision occur, we store the colliding record in a linked list (or other data structure) at the bucket, 1 hash value map to 1 addres (bucket) and not changing its address
+- hash index is efficient for **point query** but not for **range query** 
+- to insert, we first need to identify **bucket**, if bucket is not full, we can insert the record into the bucket, otherwise system provide *overflow buckets** and insert the record into it
+- **skew** might happen as some bucket might be more **popular** than other, to minimize skew, we must choose hash function that provide **uniform distribution** 
+- to calculate number of bucket needed, we can use the following formula:
+$$\text{number of bucket} = (\frac{\text{$n_r$}}{\text{$f_r$}}) * (1 + \text{d})$$
+- with $n_r$ is the number of record, $f_r$ is the number of record that can fit in a bucket, and $d$ is the desired **load factor**, about 0.2 to reduce the chance of bucket overflow
+- hash index which number of bucket is fixed is called **static hashing**, it can cause performance when number of record grow and cause more bucket overflow
+- hash index can be rebuild to reduce bucket overflow, but it can be very expensive
+- some technique is use to archive **dynamic hashing** such as **linear hashing** and **extendible hashing**
+
+## 14.6 Multiple-Key Access
+### 14.6.2 Indices on Multiple Keys
