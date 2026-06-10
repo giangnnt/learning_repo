@@ -1,0 +1,699 @@
+# Chapter 1
+### 1.3.1 Data Models
+- **Overview**
+    + **What:** ways to describe data relationships, data semantics, consistency and constrains, data properties; blueprint when design database
+    + **When:** start to design database system
+
+- **4 Categories:**
+    + **Relational Model:** represent data and relationship among data. table = relation, row = tuple, column = attribute. relational model is record base model. record base model: data organize in to 'records', record have a fix structure, database contains many record types
+    + **Entity Relationship Model:** collection of entities (things or objects) in real world. entities are distinguishable from others
+    + **Semi-structured Data Model:** permit that individual data items of same type have different set of attributes
+    + **Object-Based Data Model:** integrated in relational db
+
+- **Procedure:**
+    + collection of instructions
+    + focus on process, not output
+- **Function:**
+    + logic component that: transform, mapping Input -> Output
+    + no side effect
+- **Reason database separate function and procedure:**
+    + pure function (no side effect) suitable for: optimize query, execution plan and cache data. Cant optimize if function can cause side effect (for example to reorganize query, insert, update, delete, will cause faulty data if not organize in correct order)
+    + pure function dont have transaction (reorganize transaction might break ACID)
+    + procedure permit to have side effect and transaction control, because it will not be reorganize (cannot be optimize by optimizer as expression)
+
+### 1.3.3 Data Abstraction
+There are 3 levels of abstraction:
+- **Physical level**
+    + the lowest level of abstraction, its describe 'HOW' data stored on physical devices
+- **Logical level**
+    + next-higher level of abstraction describe 'WHAT' is stored in database, relationship between these data
+- **View level**
+    + highest level of abstraction show only necessary data for user
+    + system may provide many views for the same database
+
+### 1.3.4 Instances and Schemas
+- **Instance:** is a collection of information stored in database at particular moment
+- **Schema:** overall design of the database
+    + there physical schema, logical schema and view level schema (subschemas)
+
+## 1.4 Database Languages
+- **Data-definition language (DDL)** -> specify database schema
+- **Data-manipulation language (DML)** -> express database queries and updates
+
+### 1.4.1 Data-definition language
+DDL provides facility to determine constraints of data. But constrain might costly to test so its only provide constrain can be easy to test (minimal overhead)
+- **Domain constraints**
+    + include: Data types, Check, NULL, default value
+    + basic kind of constraint, easy to determine
+- **Referential integrity**
+    + ensure value in one relation appear in another relation
+    + prevent modification cause violation in referential integrity
+- **Authorization**
+    + Can assign the user to all, none or a combination of CRUD operation
+- Data dictionary is a special table, contain metadata of other data table, could only access via system (not regular user)
+
+### 1.4.3 Data-manipulation language
+- **DML** is a programming language that help user to access, manipulate data stored in the database: Retrieval, Insertion, Deletion and Modification
+- There are 2 types of DML:
+    + **Procedural DMLs:**
+        * **What:** user point out "HOW" to get the expected output
+        * **When:** logic depend on instruction order, complicated condition, express loop and branching
+        * **Why:** when raw SQL cant handle the complicated logic, process data row by row
+    + **Declarative DMLs:**
+        * **What:** user focus on "WHAT", not "HOW" to get the expected output(data)
+        * **When:** when logic can be written in declarative style, highly optimize performance
+        * **Why:** remain abstraction, distinct from how data is actually stored in hardware, automatically optimize by DBMS, reduce error
+
+### 1.4.4 The SQL Data-Manipulation Language
+- SQL query language is non-procedural
+- Takes several tables and output 1
+
+### 1.4.5 Database access from application programs
+- SQL is not so powerful so Application programs help database with communication over network, action from user (user input, user output)
+- To access database, DML need to be sent from host to the database, through application-program interface
+- The reason for calling api as set of procedures is that api contains function (procedures) to do something: 
+```text
+connect() -> execute() -> close()
+```
+
+## 1.5 Database Design 
+## 1.6 Database Engine
+- Database system can be partitioned into modules, including: storage manager, query processor and transaction management component
+- **The storage manager**
+    + Data move from disk is slow compare to CPU, its important that the database system organize, structure the data so as to minimize move data between disk and memory
+- **The query processor**
+    + Allow users to obtain good performance while working at view level
+    + Translate queries written in non-procedural at logical level into efficient sequence of operation at physical level
+- **The transaction manager**
+    + Allow user to treat sequence of database access as if they were a single unit, happen entirely or not at all (atomic)
+
+### 1.6.1 Storage Manager
+Responsible with interaction between application program and file manager (low-level data store) 
+Storage manager components include: 
+- Authorization and integrity manager
+- Transaction manager
+- File manager
+- Buffer manager: responsible for fetching data from the disk into main memory, cache data in main memory...
+
+Several data structures implemented in the storage manager:
+- Data files: store the database
+- Data dictionary: store metadata about the structure of the database (schema)
+- Indices: provide fast access to data item (indexing)
+
+### 1.6.3 Transaction Management
+- **Atomicity:** transaction happen all or none
+- **Consistency:** correctness of the transaction
+- **Durability:** value must persist despite the possibility of system failure
+
+- During execution of transaction, it may necessary to allow inconsistency because nothing is really atomic (1 must happen before the other)
+
+Recovery manager ensure database stored the state before transaction executing, if transaction fail, the database roll back to the previous state (failure recovery)
+
+Transaction manager include concurrency-control manager and recovery manager
+
+## 1.8 Database Users and Administrators
+### 1.8.2 Database Administrator
+- A database administrator (DBA) can:
+    + Schema definition
+    + Storage structure and access-method definition: creating indexing
+    + Schema and physical-organization modiﬁcation: update indexing, change schema
+    + Granting of authorization for data access: grating authorization for user to access parts of database
+    + Routine maintenance: backing up database, checking disk space, monitoring jobs
+
+# Chapter 2
+## 2.1 Structure of Relational Databases
+- A relation (table) is a set of tuples; each tuple is an ordered list of values and corresponds to a row in the table.
+- The domain is set of permitted value for that attribute
+- A domain is considered atomic when its elements not divisible, for ex: address can divide to house number, road, city...
+- But more important is how we use the domain, don't divide domain too small, for ex: phone number divide to single unit number...
+- Null value signifies the missing, absent of value
+- We need to consider between strict structure and efficiencies (pros ans cons)
+
+## 2.2 Database Schema
+- Relation correspond to instance of an object while Relation schema correspond to the type of the object its self
+
+## 2.3 Keys
+- Keys identify tuple uniquely (allow tuple to have same value for all attributes except key)
+- Super key is a set of attribute, allow identify tuple uniquely
+- Candidate key is super key that don't exist subset also a super key (minimal super key)
+- Primary key is a chosen candidate key
+- Two individual tuple are prohibited from having the same key attribute at the same time (primary key constraints)
+
+- Foreign key A for each tuple in Relation r1 must also be the value of B (primary key) for some tuple in r2 (foreign-key constraint)
+
+- Foreign Key Constraints is a special case of Referential Integrity Constraint, where referred attribute is a primary key
+- Also note that only FK Constraint is support by dbms
+
+## 2.4 Schema Diagrams
+## 2.5 Relational Query Languages
+- Query language is language user use to request data from the database
+- Query language usually on a higher level than standard programming language
+- Can be categorized as: Imperative, Functional, Declarative
+
+- **Imperative query language:** user instruct the system to perform specific sequence of operation, in order to achieve the result
+- **Functional query language:** can be call a subset of imperative (procedure based) language, include function call which is side effect free to achieve result
+- **Declarative query language:** in the other hand, achieve result without the specific instruction, user focus on "WHAT" will be the result and the system DBMS will handle "HOW" result will be obtained
+
+- **Relational Algebra:** will classified as functional language
+- **Tuple relational calculus and domain relational calculus:** are classified as declarative
+
+## 2.6 Relational Algebra
+- Relational Algebra is a collection of operation, which take 1 or many Relation to produce a new Relation (for simple, math form of query language)
+- Its operation can be Unary, Binary
+- Database don't allow user to use relational algebra as query language
+
+### 2.6.1 The Select Operation (Sigma)
+- The "SELECT" select tuples that satisfy given 
+```math
+σdept name = “Physics” ∧ salary>90000 (instructor)
+```
+
+### 2.6.2 The Project Operation (Pi)
+- mapping value input -> output like a function
+- The "PROJECT" produce new relation with certain attributes left out
+- Any duplicate row is eliminated (use "DISTINCT" in SQL)
+
+### 2.6.3 Composition of Relational Operations
+- result of Relational Operation is an another Relation
+```math
+Πname (σdept name = “Physics” (instructor))
+```
+- We can, instead given a name as argument of uprojection, we use a relation that evaluate to a relation
+- Relational Algebra operations can be composed into a Relational Algebra expression by arithmetic operations (+,-,*,/)
+
+### 2.6.4 The Cartesian Product Operation (Cross)
+- `(a1,b1), (a1,b2), (a2,b1), (a2,b2)` from Cartesian product in math evaluate to row (tuple) in database
+- `r = r1 x r2`, r in constructed by each possible pair of relation 1 to relation 2
+- if r1 have n rows and r2 have m rows, r will have m * n rows
+
+### 2.6.5 The Join Operation
+```math
+σinstructor.ID = teaches.ID (instructor × teaches)
+```
+- represent a subset of Cartesian product, satisfies some "Predicate" (a boolean condition) 
+```math
+r ⋈θ s = σθ (r × s) 
+```
+- r and s are relation, θ is predicate, ⋈ is join operation
+
+### 2.6.6 Set Operations
+- We say that relation is equivalent to function in math, because both is a collection of tuple
+```math
+Πcourse id (σsemester = “Fall” ∧ year=2017 (section)) ∪ Πcourse id (σsemester = “Spring” ∧ year=2018 (section))
+```
+- The Union (∪) merge two relation into 1 relation vertically
+- To Union relations, realtion must be "compatible" which conditions are:
+    + relatations must have the same "arity" (in math, arity refer to number of argument of a function)
+    + the type of ith attribute of both relation must be the same for each i
+
+- the "Intersect" (∩) produce a relation containing tuple that appear in r1 as well in r2
+- the "Set-difference" (−) produce a relation containing tuple that appear in 1 relation but not the other
+
+### 2.6.7 The Assignment Operation
+- Assign result relation into temp relation variable. denoted by (←), work like assignment in programming language
+- Allow query can be written in sequential, consisting of a series assignment (CTE, subquery)
+
+### 2.6.8 The Rename Operation (Rho)
+```math
+ρx (E)
+```
+- return the result of expression E in name x
+- A relation is considered a relational-algebra expression
+```math
+ρx(A1 ,A2 ,…,An ) (E)
+```
+- this form of rename operation can be used to give names to attributes in the results of relational algebra
+
+### 2.6.9 Equivalent Queries
+- There is often more than one way to write queries, those queries still output the same result. Those are called "Equivalent Queries"
+- Query optimizer look what result an expression computes and find efficient way of computing result
+- The "Algebraic structure" of relational algebra makes it easy to find efficient but equivalent alternative expressions
+
+# Chapter 3: Introduction to SQL
+### 3.2.1 Basic Types
+- `char(n)`: fixed-length character string with user specified length n
+- `varchar(n)`: variable-length character string with maximum length n
+- `int`: an integer (a finite subset of integers, machine dependent CPU architect, ram...) 
+- `numeric(p,d)`: a fixed-point number with user-specified precision. the number consist of p digits (plus sign) and d digits are to the right of the decimal point
+- `real`, `double precision`: floating point, double precision floating point with machine dependent precision
+- `float(n)` floating-point number with precision of at least n digits (n is number of bit of mantissa)
+- `Value = (-1)^S × 1.F × 2^(E - Bias)`
+    + **S** represent sign (+,-)
+    + **F** represent the precision of the number
+    + **E** is biased exponent
+    + **Bias** `= 2^(k-1) - 1`  (k is the number of bit of exponent, -1 inside is for balance between positive and negative, -1 outside is except 0)
+
+- each ype include special value call "NULL", its indicate the absent of value
+- when compare char and varchar, may the database add extra space to varchar type
+- Unicode mapping between character -> code point (U+XXXX)
+- Encoding (UTF-8, 16, 32) translate code point -> bytes
+- ASCII is a subset of Unicode
+- `nvarchar`: allow to store unicode value
+
+### 3.2.2 Basic Schema Definition
+- **primary-key:** non-null and unique
+- **foreign-key:** must correspond to values of the primary key attributes of some tuple in referred relation
+- **not null:** exclude the null value from the domain of that attribure
+- alter table command is used to add attributes to an existing relation, all tuples in the relation are assigned null as the value for the new attribute
+- adding non null attribute without "DEFAULT" will usually fail
+
+## 3.3 Basic Structure of SQL Queries
+- duplicate elimination is time-consuming, but we can eliminate them by using "DISTINCT" keyword
+
+### 3.3.2 Queries  Multiple Relations
+
+```sql
+select name, instructor.dept name, building
+from instructor, department
+where instructor.dept name= department.dept name;
+```
+- above query represent joining two table, base on where clause, it can be cross join or inner join
+
+## 3.4 Additional Basic Operations
+**Note 3.1**
+- SQL standard define how many copy of each tuple in the output base on duplicate of each tuple in the input
+- To model this behavior, SQL use multi-set relational algebra
+- Multi-set relational algebra is defined as a set that contain duplicates.
+- If there are `c1` copies of `t1` in `r1` and `c2` copies of `t2` in `r2`, there `c1*c2` copies of `t1.t2` in `r1 x r2`
+- Lower level representation of SQL queries perform query optimization and query evaluation base on relational-algebra
+
+### 3.4.2 String 
+- SQL standard specifies strings in a single quotes, for ex: `'Computer'`
+- If in strings contain a quote, the quote can be represent by double quote, for ex: It’s right with `'It''s right'`.
+- Strings evaluation is case sensitive, but some DBMS don't distinguish case sensitive (MySQL and SQL Server) but this behavior can be changed in the setting
+- `%` charater matches any substring
+- `_` character matches any character
+- similar to quote, there also a way to express character `%`, using `\`
+- for ex: `'ab\%cd%' -> 'ab%cd'`, `'ab\\cd' -> 'ab\cd'` 
+
+### 3.4.4 Ordering the Display of Tuples
+- `order by` clause lists item in asc order
+- we can wrote `instructor.ID= teaches.ID` and `dept name = 'Biology'` -> `(instructor.ID, dept name) = (teaches.ID, 'Biology')`;
+
+## 3.5 Set Operations
+- use `union all` union operation automatically eliminates duplicates
+- use `union all` if we want to retain all duplicates
+
+### 3.5.2 The Intersect Operation
+- intersect operation eliminated duplicate and similar to union, we can use `intersect all` to retain the duplicate
+- intersect is similar to join if its meet these condition:
+    + use distict keyword
+    + both join table have the same schema
+    + join condition is the whole tuple
+
+### 3.5.3 The Except Operation
+- similar to above operation, except choose tuple that appear in r1 but not in r2, eliminate duplicate, use `except all` to retain duplicate
+
+## 3.6 Null Values
+- result of arithmetic expression (+, -, *, /) is null if one of the input is null
+- comparison to null treat as unknown
+- it's create a third logic, other than true and false
+- where clause only select true
+
+- we can use `unknown` and `is not unknown` to test if the result known or unknown
+- the null treatment in select distinct clause (null = null is true) is different from predicate (null = null is unknown)
+- this approach also used in union, intersect and except
+
+- **and:** The result of true and unknown is unknown, false and unknown is false, while unknown and unknown is unknown.
+- **or:** The result of true or unknown is true, false or unknown is unknown, while unknown or unknown is unknown.
+- **not:** The result of not unknown is unknown.
+
+## 3.7 Aggregate Functions
+- aggregate functions take a collection (a set or multiset) of values as input and return a single value. 
+- there are five standard build-in aggregate functions: avg, min, max, sum, count
+- sum and avg only operate on numbers
+- we can use distinct keyword in aggregation for ex: `count(distinct ID)`
+- only attributes that appears in  the select statement without being aggregated are presented in the group by clause
+
+### 3.7.3 The Having Clause
+- Having applies to each group constructed by the group by clause and after group have been formed
+- we can use aggregate function in having clause cause group have been formed
+- any attribute appear in having clause without present in aggregate function or group by clause in erroneous
+
+- the predicate in where clause happen first, the place the result in to group by clause
+- if the group by is absent, the whole relation is treated as one big group
+- having clause applied to each group, if group not satisfy the having clause, it is removed
+
+### 3.7.4 Aggression with Null and Boolean Values
+- "Partial information is still information": dù thiếu 1 phần nhưng thông tin vẫn là thông tin
+- all aggregate function except count(*) ignore null values
+- count on empty set return 0
+- other aggregation function return null 
+- some: or(dis junction) on set of boolean value
+- every: and(conjunction) on set of boolean value
+
+## 3.8 Nested Sub queries 
+- sub query is a select-from-where expression that is nested within another query
+
+### 3.8.1 Set Membership
+### 3.8.3 Test for Empty Relations
+- correlated sub query is a query that depend on the outer query to use as parameter for where, select of inner query
+
+### 3.8.5 Sub queries on the From 
+- rename sub query and its attribute
+
+```sql
+select dept name, avg salary
+from (select dept name, avg (salary)
+from instructor
+```
+
+- sub query in the from clause is different from in the select/where clause (scalar)
+- in the from clause, it separated from the process, happen first so it don't allow to see other value in the select clause (without "lateral" keyword)
+- in the select/where clause, sub query happen each time its iterate though the defined relation ship and return scalar value so it can apply scoping rule
+
+### 3.8.6 The With Clause
+### 3.8.7 Scalar Sub queries
+- **Scalar sub queries** is defined that return 1 tuple with 1 single attribute
+- if a sub query can return more than one tuple in its result, run time error occurs
+- SQL simply extract the relation of the scalar sub query and return the value
+
+### 3.8.8 Scalar Without a From Clause
+```sql
+(select count (*) from teaches) / (select count (*) from instructor);
+```
+
+- the expression show a scalar sub query without the top level query
+- this is legal in some dbms but not in the other
+
+## 3.9 Modification of the Database
+### 3.9.1 Deletion
+- both select and delete clause act on a snapshot data from the
+
+### 3.9.2 Insertion
+- there are 2 ways to insert data into relation:
+    + specify a tuple to be inserted 
+    + write a query which result to be a set of tuple to be inserted
+- attribute values for inserted tuple must be member of the corresponding attribute's domain
+- inserted tuple must have the same number of attributes
+- note that similar to delete statement, tuple or relation query result mus be evaluated first (to void looping condition)
+- most dbms support bulk loader: a way to insert large set of tuple in to relation without insert statement
+
+### 3.9.3 Update
+# Chapter 4: Intermediate SQL
+## 4.1 Join Expressions
+- **natural join** calculate relation from tables base on attributes that have the same name
+- **join using** is a short for join on: instead of defining table alias, both attribute, join using only specify which table to join on. 
+- the condition for using keyword is that both table must have the same attribute
+
+### 4.1.2 Join Conditions
+### 4.1.3 Outer Joins
+- **outer-join** preserve tuples which would be lost in a join by create a tuple in the result containing null values
+- **full outer join** preserves tuple in both relation
+- step to produce a left outer join:
+    + compute inner join
+    + for every tuple t in left table that does not match any tuple in the right hand side relation in the inner join, add a tuple r to the result
+    + tuple r constructed from: all attribute from the left hand table + null value for attributes from right hand table
+- **full outer join** is a union from left outer join and right outer join (note that inner join duplicate will be eliminated)
+
+- on and where behave differently on outer join 
+    + **on** added a null padded for tuples that don't match the predicate
+    + **where clause** only choose tuple which meet the predicate
+
+### 4.1.4 Join Types and 
+## 4.2 Views
+- **Views** is used when there is a security concern, or using to visualize higher layer of business instead of table
+- the view relation is recomputed whenever we use it
+
+### 4.2.3 Materialized Views
+- **materialized views:** certain database systems allow view relation to be stored instead of recomputed each time being use
+- the action of keeping the materialized view update to date is call view maintenance
+- view maintenance behave differently on different dbms, some will actively recompute the view if relation being change, some lazily recompute, other depend on how db admins configuring
+- db admin must consider between the benefit of pre-compute view and its storage cost, overhead for updates
+
+### 4.2.4 Update of a View
+- modification on view are not permitted on view relations, except limited case due to data inconsistency problems.
+- view can be update-able (but the still problems) when its meet these constraint
+    + from clause use 1 relation
+    + select clause don't contain expression, aggregates, distinct
+    + attribute listed in select are null-able, and not part of primary key
+    + query don't contain group by or having clause
+- there is an option that view update is reject if tuple inserted not satisfy the where clause conditions
+- more preferable way to modify a view is to use "trigger"
+
+## 4.3 Transactions
+- **transaction:** contain instruction and begin implicitly when sql statement execute
+- transaction must end with: commit work or rollback work
+- in case of power outage or system crash, rollback occurs when the system restarts
+- if programs terminates without execute any command, its either committed or rollback depend on the implementation
+- in many dbms implementation, each sql statement is taken to be a transaction on its own, auto commit of individual sql statement must be turn off if there are many sql statement will executed at given time
+
+## 4.4 Integrity Constraints
+- integrity constraints are usually identified as part of db schema when its created as create table command being used
+- it can also be defied in alter table add constraint command
+
+### 4.4.1 Constraints on Single Relation
+### 4.4.3 Unique Constraint
+- **unique** says that no two tuple have the same value on unique attribute
+- null = some value is not true
+
+### 4.4.4 The Check Clause
+- a check clause is satisfied if its not false, so unknown is evaluate as valid in check
+- when a foreign key is violated, instead of rejecting the action, system decide what to do base on associated clause:
+    + `on delete cascade`: also delete tuples that referred to the deleted one
+    + `on update cascade`: also update tuples that referred to the updated one
+    + we can replace cascade with "set null" or "set default" for different behavior
+
+### 4.4.5 Referential Integrity 
+- by default, foreign key referenced to primary key
+- we can also specified attribure which is refferred to, as long as the the attribute is unique and not null
+- we eventually can make foreign key reference a non candidate key(not unique, null allowed), but its not recommended and not supported by many dbms
+- forreign key and referenced key must compatible (same domain, same number of attribute)
+- if cascading can not be handled(self referenced), the action will be rejected
+- attributes of foreign key can be null, if any attribute is null, the foreign key constraint is not enforced (null is not equal to any value, so it can't violate the constraint)
+
+### 4.4.6 Assigning Names to Constraints
+### 4.4.7 Integrity Constraints Violation During Transaction
+- integrity constraint is checked at the end of the transaction, not during the transaction
+- so its possible that during the transaction, the constraint is violated temporarily, but at the end of the transaction, the constraint is satisfied again
+- **initial deferred:** constraint is checked at the end of transaction
+- **deferable:** constraint can be set to immediate or deferred mode at the start of transaction
+- we can walk around the constraint check by using null value if the attribute permit null
+
+### 4.4.8 Complex Check Conditions and Assetions
+- not many dbms support subquery in check condition
+- if there is subquery in check condition, its evaluated each time the target relation and refferred relation is modified
+- **assertion** is a general condition that involve more than one relation
+- not many dbms support assertion due to its complexity and cost to evaluate
+
+## 4.5 SQL Data Types and Schemas
+### 4.5.1 Date and Time Types
+- `date`: store date value (year, month, day)
+- `time`: store time value (hour, minute, second, fraction of second, time zone)
+- `timestamp`: store both date and time value
+- sql define functions to get current date and time: `current_date`, `current_time`, `current_timestamp`
+- `interval`: represent a duration of time (difference between 2 date/time/timestamp)
+
+### 4.5.2 Type Conversion and Formatting Functions
+- **implicit conversion:** automatic conversion between compatible data type
+- **explicit conversion:** user use cast operator to convert data type
+- **formatting function:** convert data to string with certain format
+- **coalease** indicate that all the value in the argument must be the same type
+
+### 4.5.3 Default Values
+### 4.5.4 Large Object Types
+- DBMS support `clob`, `blob` for large object storage (photo, video, document...)
+- **lob:** large object
+- it's costly to process large object, so dbms usually store lob in separate location and only store pointer in the relation
+
+- **temporal validity**
+    + there is a need to keep track of time period that a fact is true in the real world
+    + the solution is to add 2 attribute: valid time start and valid time end to the relation
+    + but this approach also came with problems: the same tuple (same primary key) can appear multiple time with overlapping time period
+    + the solution for postgres is to use EXCLUDE constraint to prevent overlapping time period for the same primary key
+
+### 4.5.5 User-Defined Types
+- At the system level, some field are just the same (for ex: phone number, id number...), but at the logical level, they have different meaning
+- user-defined type help to distinguish those field at the logical level 
+- user-defined type also help to prevent accidental mix-up between those field at the system level
+- we can create domain by "Create Domain" command
+- **type:** define how data is stored
+- **domain:** define constrain (range of valid values) on top of type
+
+### 4.5.6 Generating Unique Key Values
+- when the always option is used, user cannot specify value for the attribute during insertion, the system will automatically generate value
+
+### 4.5.7 Create Table Expressions
+- `create table like`: create a new table with the same structure as an existing table
+- `create table as`: create a new table with the structure and data from the result of a select query
+
+### 4.5.8 Schemas, Catalogs and Environments
+## 4.6 Index Definition in SQL
+- **index** is a data structure that improve the speed of data retrieval operation on a database table at the cost of additional writes and storage space to maintain the index data structure
+- `create index` tradeoff between read and write performance, space cost
+- when submit a sql query that can benefit from index, the query optimizer will choose to use the index to speed up data retrieval
+- the "benefit" is refer to the cost of using index is lower than cost of scanning the whole table
+
+## 4.7 Authorization
+- Authorization on data include: select, insert, update, delete. These are called privileges
+
+### 4.7.1 Granting and Revoking Privileges
+- A user who creates a relation automatically have all privileges on that relation
+
+### 4.7.2 Roles
+- **role** is a named group of related privileges
+- role help to manage authorization when there are many users
+
+### 4.7.3 Authorization on Views
+- authorization on view is similar to relation
+- it is useful when we want to restrict user access to certain attribute or tuple in the relation
+- user create view does not receive all privileges on that view
+- the excecute privilege is granted on function or procedure
+- function and procedure have all the privilege that the creator have
+- if function definition contain sql security invoker clause, the function will have the privilege of the user who call the function instead of the creator 
+- there are two type of sql security: invoker and definer
+    + **invoker:** function run with the privilege of the user who call the function
+    + **definer:** function run with the privilege of the user who create the function
+
+### 4.7.4 Authorization on Schemas
+### 4.7.5 Transfer of Privileges
+- The creattor of a relation/view/role holds all privileges on that object, including the privilege to grant those privileges to other users
+- User have privilege if and only if there is a line between root (DBA) to that user in the privilege graph
+- the restrict keyword is specified in order to prevent cascading revoke of privilege
+- we can use granted by role to indicate that the privilege is granted by a role instead of user
+
+### 4.7.7 Row-Level Authorization
+- DBA create a function that generate predicate base on user
+- when user query the relation, it will automatically add the predicate to the where clause
+- this approach is call **Row-Level Security (RLS)**, in oracle call **Virtual Private Database (VPD)**
+
+# Chapter 5: Advanced SQL
+## 5.1 Accessing SQL from a Programming Language
+- There are 2 approaches to access database from application program:
+    + **Dynamic SQL:** sql statement is constructed as string at runtime and sent to the dbms for execution
+    + **Embedded SQL:** sql statement is embedded in the host programming language and precompiled before compilation of the host program
+- Embedded SQL is more efficient than dynamic sql because sql statement is precompiled
+- Dynamic SQL is more flexible than embedded sql because sql statement can be constructed at runtime base on
+- sql return relation, so when we want to use the result in application program, we need to convert it to data structure in the programming language (for ex: array, list, map...)
+
+### 5.1.1 JDBC
+- **JDBC** stand for Java Database Connectivity
+- JDBC is an api that allow java program to access database
+- orm -> api -> driver -> database
+- JDBC dynamically load the driver class at runtime base on the database being used
+- Driver support protocol that translate JDBC api call to database specific protocol
+
+#### 5.1.1.2 Shipping SQL Statements to the Database system
+- **statement object** is used to invoke method that send sql statement to the database
+
+#### 5.1.1.3 Exception and Resource Management
+#### 5.1.1.4 Retrieving the Result of a Query
+- the **Next() method** of the ResultSet object is used to iterate through the result of a query
+- its test whether there is another row in the result
+
+#### 5.1.1.5 Prepared Statements
+- We can compile statments, replace real argument with placeholder ($)
+- When execute the prepared statement, we provide the real argument 
+
+#### 5.1.1.6 Callable Statements
+- **Callable statement** is used to call procedure or function in the database
+
+## 5.2 Functions and Procedures
+- Functions are useful with specialized data types such as images and geometric objects
+- The pros of using functions and procedures: 
+    + allow change in case business without chanigng other parts of application program
+
+### 5.2.1 Declaring and Invoking SQL Functions and Procedures
+- despite remain difference, table function can also be thought as parameterized view, because it return a relation base on the input parameter
+- sql permits procedure to have the same name as long as their parameter list is different (overloading)
+- functions can also be overloaded, as long as they have different parameter list
+
+### 5.2.2 Language Constructs for Procedures and Functions
+- **SQL/PSM (Persistent Stored Modules)** is a standard language for writing stored procedure and function in SQL
+- Its provides: DECLARE, SET, IF, THEN, ELSE, CASE, LOOP, WHILE, REPEAT, LEAVE, ITERATE, RETURN
+- in postgres, we can also use PL/pgSQL, which is similar to SQL/PSM but with some additional feature and different syntax
+- its also support signal and exit handler
+    + **signal:** raise an exception with a specific sql state and message
+    + **exit handler:** specify a block of code to be executed when a specific exception is raised
+- SQL allow us define function in programming language
+- function defined in programming language can be called from sql statement, but it come with overhead and security concern
+- **sandbox** is a security mechanism to restrict the access of function defined in programming language to certain resource (file system, network, environment variable...) 
+
+## 5.3 Triggers
+- **trigger** is a statement that automatically execute in response to certain event on a particular table or view
+- to define a trigger, we need to specify:
+    + the event that will activate the trigger (insert, update, delete)
+    + the action that will be executed when the trigger is activated
+
+### 5.3.1 Need for Triggers
+- **for each row clause:** trigger will execute for each row that is affected by the event
+- **referencing new row as nrow:** create a variable nrow that contain the new value of the row being inserted or updated (iterate through each row being affected)
+- a trigger can be disabled or enabled using alter table command
+- **referencing table** usually used in statement level trigger, it create a variable that contain the relation of the rows being affected by the event (for ex: all rows being inserted)
+- we cannot use referencing table with before trigger because the relation of the rows being affected is not yet available before the event happen
+- some problem can also be found with above approach, for ex it will cause infinite loop or memory and performance problem
+
+### 5.3.3 When Not to Use Triggers
+- using `on delete cascade` instead of trigger to maintain referential integrity
+- using materialized view instead of trigger to maintain summary data
+- using replication feature of dbms instead of trigger to maintain data in sub table (delta table)
+    + to sync data between two table, when table a is updated, we trigger to write a log to delta table, then we have a process that read the log, delete log table and update table b, this approach is call "**Change Data Capture (CDC)**"
+- when there is a used of backup and restore, trigger will be activated and cause data inconsistency, so we need to disable trigger before backup and restore, then enable it again after that
+    + or we we can specify not for replication in the trigger definition, so it will not be activated during backup and restore
+- many trigger can be replaced by using procedure
+
+## 5.4 Recursive Queries
+- **Transitive closure:** the set of all nodes that can be reached from a given node in a graph
+- **Recursive query:** a query that refer to itself in its definition
+- Recursive query is useful for querying hierarchical data, such as organizational chart, bill of materials,
+
+### 5.4.1 Trasitive Closure Using Iteration
+- in postgres, recursive with CTE is a bit different than in programming language
+- the result of first part of the query is reutrn to the cte then the second part use cte as input. Then the result is used as input for the second part of the query until there is no new tuple being added to the result
+
+- closure make sure that we can reach all node that can be reached from the given node, nothing more, nothing less
+- `create temporary table`: create temp table that only available during the session, it will be automatically dropped at the end of the session
+- if there is two "create temporary table" running cocurrently, each get its own copy
+
+### 5.4.2 Recursion in SQL
+- **recursive view** must define a relation that is "union" of 2 relation:
+    + base query
+    + recursive query
+- the flow is understood as follow:
+    + first, the base query is evaluated and its result is stored in the view relation
+    + then, the recursive query is evaluated using the view relation as input, and its result is added to the view relation
+    + this process is repeated until no new tuple is added to the view 
+    + **fix point:** the point at which the view relation does not change anymore, so the recursion can stop
+
+- the recursive query must be monotonic:
+    + result of recursive query must be a superset of the input relation: if r1 is superset of r2 => recursive query result on r1 is superset of recursive query result on r2
+
+- because recursive query depend on the previous result, it can not use non-monotonic operation, for ex:
+    + aggregate function: because aggregate function is not monotonic, it can produce result that shrink when the input relation grow
+    + not exist
+    + except 
+
+## 5.5 Advanced Aggregation Features
+### 5.5.1 Ranking
+- in postgres, null value is treated as the highest value
+- using `nulls first` or `nulls last` to change the default behavior of null value in order to treat it as the lowest value
+- `rank()` reset to 1 for each partition
+- ranking apply after group by
+
+- `percent_rank()` is defined as 
+$$\frac{\text{rank}() - 1}{\text{number of tuples in partition} - 1}$$
+- it return a value between 0 and 1, inclusive
+    + it represent the relative distance of position of the tuple in the partition, compare to the start and the end -> thats why its domain is [0,1]
+
+- `cume_dist()` is defined as
+$$\frac{\text{rank}()}{\text{number of tuple in the partition}}$$
+- it represent the relative position of current tuple compare to how many tuple its already pass in the partition, compare to the total number of tuple in the partition -> thats why its domain is (0,1] (include the first tuple)
+
+- `ntile(n)` devide the partition into n group, and assign a number to each tuple to indicate which group it belong to if number of tuple in the partition is not divisible by n, its priority to assign more tuple to the higher group
+
+### 5.5.2 Windowing
+- **windowing** is different from partitioning, because it does not divide the relation into group, but it define a "window" of tuples, the window is slide through the relation, and the aggregate function is applied to the tuples in the window
+- original windowing compute aggregate base on physical tuple, the window can enxpand and shrink as it slide through the relation
+- use **"unbound" keyword** to define window that start from the first tuple or end at the last tuple
+- use **"preceding" and "following" keyword** to define window that start from the current tuple and expand to the preceding or following tuple
+- use **"range" keyword** to define window take value of the current tuple (not physical tuple) as reference 
+
+### 5.5.3 Pivoting
+- **pivoting** is a technique to transform rows value into columns, it is useful for reporting and data visualization
+
+### 5.5.4 Rollup and Cube
+- **rollup** is a extension of group by that produce subtotals and grand total in the result
+- its create many group by using the same group by attribute, but with different level of aggregation
+- **cube** is a extension of rollup that produce subtotals for all combination of group by attribute
+- use **"grouping set"** to specify which combination of group by attribute to be included in the result
+- **grouping() function** is used to determine whether a tuple in the result of grouping (1) or part of the original relation (0)
