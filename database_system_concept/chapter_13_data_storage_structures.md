@@ -99,7 +99,7 @@
 ## 13.4 Data Dictionary Storage
 - dbms also store about info about relations, attributes, indexes, etc. called "metadata" in a special file called **data dictionary** or **system catalog**
 
-![](images/system_metadata.png)
+![](../images/system_metadata.png)
 > illustration of the data dictionary
 
 - when a dbms need to retrieve records, it first access ***Relation_metadata*** to get location and storage organization of the relation

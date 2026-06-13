@@ -165,10 +165,10 @@ and and put $\frac{n}{2}$ search key value in the original node other $\frac{n}{
     - it's left pointer **point** to the original node
     - it's right pointer (old pointer) **updated** to pointed to the newly created node
 
-![](images/before_insertion.png)
+![](../images/before_insertion.png)
 > illustration of $B^+$ tree before insertion
 
-![](images/after_insertion.png)
+![](../images/after_insertion.png)
 > illustration of $B^+$ tree after insertion
 
 - splitting on **internal node** is a little bit different from **leaf node**, below is the illustrations
@@ -180,10 +180,10 @@ and and put $\frac{n}{2}$ search key value in the original node other $\frac{n}{
     - key value between those pointer is separated accordingly
     - the **key value** between $P_m$ and $P_{m+1}$, $K_m$ is **pushed up** to the parent node as the new entry, it is important to note that this key value is **not duplicated** 
 
-![](images/before_internal_insertion.png)
+![](../images/before_internal_insertion.png)
 > illustration of $B^+$ tree before internal node insertion
 
-![](images/after_internal_insertion.png)
+![](../images/after_internal_insertion.png)
 > illustration of $B^+$ tree after internal node insertion
 
 #### 14.3.3.2 Deletion
@@ -201,10 +201,10 @@ and and put $\frac{n}{2}$ search key value in the original node other $\frac{n}{
     2) we move down the **separator** search key value in the **parent** between the two **pointers**
     3) the **correct separator** of the two nodes is now the **most right search key value**, we move up the **most right search key value** to the **parent** as the new separator and update its pointer correspondingly
 
-![](images/before_internal_insertion.png)
+![](../images/before_internal_insertion.png)
 > illustration of $B^+$ tree before internal node deletion
 
-![](images/after_deletion.png)
+![](../images/after_deletion.png)
 > illustration of $B^+$ tree after deletion of entry “Srinivasan”
 
 - we next consider the case of redistribution with the **leaf node** 
@@ -212,7 +212,7 @@ and and put $\frac{n}{2}$ search key value in the original node other $\frac{n}{
     - we then redistribute the entries by moving the most right entry of the left sibling 
     - the moved entry now is the **smallest search key value** in the leaf node, so we update the parent node entry to point to the moved entry and its value
 
-![](images/redistribution_leaf_node.png)
+![](../images/redistribution_leaf_node.png)
 > illustration of $B^+$ tree before and after deletion of "Singh" and "Wu"
 
 - we then perform deletion of "Gold" entry:
@@ -222,7 +222,7 @@ and and put $\frac{n}{2}$ search key value in the original node other $\frac{n}{
     - still after the **rotation** parent node is **underfull** since it only have 1 pointer, so we merge the parent node with its sibling node, and delete the empty node 
     > bring tree height down by 1 
 
-![](images/after_gold_deletion.png)
+![](../images/after_gold_deletion.png)
 > illustration of $B^+$ tree after deletion of "Gold"
 
 ### 14.3.4 Complexity of $B^+$ Tree Updates
@@ -375,3 +375,43 @@ where dept name < 'Finance' and salary < 80000;
     - each random write likely to contain I/O of: read the block from the disk + write the block back to the disk
     - on SSD, random write I/O perform faster but each write still have a significant cost since it require a block to be erased before writing in (remapping logical and physical block + erase block in background)
 - LSM tree (log-structured merge tree) and its variants are widely adopt as a **write-optimized** index structure
+
+### 14.8.1 LSM Trees
+- LSM tree consist of several $B^+$ tree starting with an in-memory tree $L_0$ and on-disk trees $L_1, L_2,...,L_k$S
+
+![](../images/lsm_tree.png)
+> illustration LSM tree
+
+- in case of index look up: separated look ups are performed on each trees and then merge the result 
+- in case of insertion:
+    - records are first inserted in $L_0$ tree
+    - if located memory for $L_0$ tree is used up, we move data to $B^+$ structure on disk
+        - if $L_1$ is empty, entire $L_0$ is written to disk to create $L_1$
+        - if $L_1$ is not empty:
+            - we first scan $L_0$ and $L_1$ leaf level in increasing key order
+            - then merge the result and ***bottom-up build process*** to create new $L_1$
+            - replace the new $L_1$ with the current one
+        - in both case, all $L_0$ entries are delete
+- note that all the entries in $L_1$, include those done have any update will be copied to the new $L_1$ tree instead of performing update on old tree, this will gives the following benefits
+    - avoid random I/O during insertion
+    - avoid spare leaf which cause by page split -> increase data density at physical level  
+- in contrast with the benefit, there is some drawback with LSM structure approach, one is that it require to copied entire of tree content each time $L_0$ are copied into $L_1$
+- to reduce this cost, they use 1 of these 2 techniques
+    - ***multi-level system***
+        - use a multi-level system $L_0$..$L_i$ with size that
+        $$L_{i+1} = L_i * k$$
+        - with $k$ ussually be $10$ in system like **Cassandra** or **RocksDB**
+        - this reduce maximum number of time an entries have to be **rewrite** in a level to $k$
+        - with n being the number of level needed to contain I amount of entries, M is the amount of entries contain in $L_0$ we have that:
+        $$M * k^n = I$$
+        - to calculate the number of level, we modify the formula:
+        $$log_k(\frac{I}{M}) = n$$
+    - ***stepped-merge index***
+        - each level other than $L_0$ can have up to $b$ number of tree
+        - when $L_0$ write to the disk, it dont ***compaction*** with the current $L_1$, $L_1$ dont need to be bigger than $L_0$
+        - instead, it create a new $L_1$ and write data into the new one
+        - when the number of $L_1$ trees are up to $b$, the compaction begin and write to a $L_2$ tree which size is about $b * L_1$ size
+        - this approach decrease the insertion cost significantly but to trade off, increase the query cost because multiple tree at 1 level need to be search
+        - ***bloom filters*** are then use to detect that a search key are not present in particular tree
+- in case of insertion:
+    - LSM tree using ***tombstone*** machinism to delete entry but not affect performance
