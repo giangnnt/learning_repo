@@ -414,4 +414,21 @@ where dept name < 'Finance' and salary < 80000;
         - this approach decrease the insertion cost significantly but to trade off, increase the query cost because multiple tree at 1 level need to be search
         - ***bloom filters*** are then use to detect that a search key are not present in particular tree
 - in case of insertion:
-    - LSM tree using ***tombstone*** machinism to delete entry but not affect performance
+    - LSM tree using ***tombstone*** machanism to delete entry 
+    - we **insert** a tombstone entry indicate that: evevy entry with the same search key appear in LSM tree before the tombstone arrival will be filter out when query
+    - when merge tree, tombstone entry matched other entries on search key, both getting discarded  
+    - original LSM tree dont support ***range tombstone*** with non-search key attribute filter 
+- update are handled similar to deletion
+- LSM tree initially design to reduce the overhead of random I/O on HDD, those benefit is not particularly important on flash based storage
+- however, each write on SSD require a whole page to be rewritten, original page needs to be erased eventually in block. LSM tree reduce write amplification by insert entries in bulk
+
+### 14.8.2 Buffer Tree
+- ***buffer tree*** is an alternative to LSM tree, key idea is associate a buffer wih each internal node of $B^+ tree$ and root node
+- in case of insertion:
+    - entry are first inserted at root's buffer
+    - if root's buffer is full, entry are then sorted and push down to the correspondingly child level's buffer base on its search key
+    - this process continue when entry meet leaf node, it then inserted in leaf node in the usual $B^+$ manner
+    - when splitting happen on internal node, the extra step is to also split the buffer based on the entries search key
+- search for entries are done in usual way, an extra step is for each non-leaf node access, we must also look for entries that match the look up key in the buffer
+- range look up must also examine th buffers of all parent node which its leaf node are accessed during range scan
+- buffer tree transfer the cost of insertion from linear on number of records to the number of $k$ records to be pushed down to children at a time
