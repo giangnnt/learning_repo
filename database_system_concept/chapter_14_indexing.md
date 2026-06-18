@@ -432,3 +432,64 @@ where dept name < 'Finance' and salary < 80000;
 - search for entries are done in usual way, an extra step is for each non-leaf node access, we must also look for entries that match the look up key in the buffer
 - range look up must also examine th buffers of all parent node which its leaf node are accessed during range scan
 - buffer tree transfer the cost of insertion from linear on number of records to the number of $k$ records to be pushed down to children at a time
+- deletion can be processed in the same manner as LSM tree or using normal $B^+$ tree manner but the cost will be higher than first option
+- compare to LSM tree
+    - interm of read operation, buffer tree are significant faster than LSM tree since LSM tree require to scan all tree in all level then merge them to get the result
+    - interm of write operation, buffer tree still need an amount of random I/O, contrast to sequential I/O on LSM tree
+    - but when randome I/O are very efficient on SSD, buffer tree have an advantage since it dont require data to be **compaction** (require in multiple sorting and merging data) many time as in LSM
+    - serveral index structure designed for flash storage use the buffer concept similar to buffer tree
+    - buffer is use as ***design priciple*** to apply ***lazy evaluation*** especially where sorting and bottom-up construction may not capable of (multi-dimentional data) (GiST)
+
+## 14.9 Bitmap Indices
+- bitmap indices are designed to querying on multiple attributes
+- presequite when using bitmap indices:
+    - record must be numbered $n$ sequentially in order to locate record easily instead of using ***RID*** (block_num, record_position_in_block)
+    - by using record number $n$, we can locate record as follow
+        $$\text{block number} = \frac{n}{\text{record per block}}$$
+        $$\text{record location in block} = n\pmod{\text{record per block}}$$
+    - to archieve record number easily if records are fixed in sixe and allocated on consecutive blocks of file
+    - a relation which its attribute range have small number of value
+    > a ***gender*** attribute which have only 2 values is ideal for bitmap
+    - attribute can also have range values such as ***salary***, values then split to small number of range to simplify data
+    > ***salary*** is divided in to ranges such as L1:0-9999, L2:10000-19000 and so on
+- the following is an bitmap indices on relation ***instructore_info***
+
+![](../images/bitmap_index.png)
+- bitmap structure is efficiency when the attributes have
+**low-cardinality** k (độ chọn lọc thấp)
+
+- a ***bitmap*** is an array of bits
+- a ***bitmap index*** on an attribute $A$, of relation $r$ contains many bitmap, each bitmap represent a value that attribute $A$ can take
+- take example on a bitmap of value $v$ in attribute $A$
+    - each bit $i$ th in the bitmap array represent if or if not the record numbered $i$ have the value $v$ 
+    - $i$ th bit is set to $1$ if record numbered $i$ has value $v$
+    - case record have different value other than $v$, $i$ th bit is set to $0$
+- bitmap index dont really help speed up selection although it help to locate record, we likely have to read all the block since low-cardinality attribute might distrbuted randomly in blocks
+- bitmap index are usefully when selection perform on mulpiple keys, for example consider the image above 
+    - we want to select `woman` with `salary` in range 10000-19999, the query then can be express as
+    ```sql
+    select *
+    from instructor info
+    where gender = 'f' and income level = 'L2'; 
+    ```
+    - value `f` represent as $01101$ and `L2` as $01000$
+    - the then perform ***intersection*** (logical-and) on two bitmap, result in new bitmap $01000$
+- bitmap index tranform linear scan and filtering into CPU level instructions bitwise to select record efficienly when dealing with multiple attribute selection
+- hybrid indices that combine B+ -trees with bitmaps, can be found in Section 24.3.
+
+## 14.10 Indexing of Spatial and Temporal Data
+- when query involve in 2 or more dimensions or interval associated, the tranditional indices may result in poor performance
+
+### 14.10.1 Indexing of Spatial Data
+- `range queries`: a queries to archieve objects within a specified area
+- `neares neighbor queries`: query to answer what is the nearest destination to a location
+- `k-d tree` is an early used for indexing in multiple dimensions base on the idea of devide each dimension into two part as in $B^+$ tree indexS
+
+![](../images/k-d_tree.png)
+- each line of k-d tree can refer as separator, each space separate can be call as left and right child, it kept separating until dont, then the ramain space are now call the leaf node
+- `k-d-B tree` is an extension to k-d tree which allow multiple child node in each internal node
+- `quadtrees`: instead of deviding space one dimensional at a time, its devide space into 4 node
+- storing object that represent in quadtrees can result in inefficienies since object will likely to cross the separator line, storing them we'll have to store infomation of objecct in 4 different node
+- `R-tree` a solution is to combine leaf nodes which contain data into a rectangle called `minimum bounding rectangle`
+
+### 14.10.2 Indexing Tempral Data
