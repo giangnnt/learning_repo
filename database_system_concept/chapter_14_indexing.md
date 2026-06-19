@@ -319,6 +319,9 @@ $$\frac{50505}{100} \times 4 \text{ KB} \approx 2 \text{ MB}$$
 - a tree-structured **within** node is also use to minimize linearly scan or binary search, and reduce cache misses
 
 ## 14.5 Hash Indices
+- ***random*** in the phase random access represent as Arbitrary (bất kì, tùy ý)
+- a memory is called random access if access any storage unit will take the same time by using address decoder and rows-collumns structure (simplify for easily understand)
+- hash indice is widely used as main memory indices or permanant structure in a main memory database
 - bucker: a unit of storage that can store on or more record
     - in memory base, bucket can be implemented as a linked list of index entries or records
     - in disk base, bucket can be linked list of disk block
@@ -493,3 +496,14 @@ where dept name < 'Finance' and salary < 80000;
 - `R-tree` a solution is to combine leaf nodes which contain data into a rectangle called `minimum bounding rectangle`
 
 ### 14.10.2 Indexing Tempral Data
+- a tuple with an associated time period can be represent as many tuples, each have it's own valid time interval
+- `time interval` a period of time, represent as $[\text{start time}, \text{end time})$
+- `closed` indicate the interval **include** the time, **at** this time it start, represent as $[]$
+- `open` indicate the interval **exclude** the time, **after**/**before** this time it start, represent as $()$
+- to represent a tuple is valid until next change, we ussually use large time such as ***mid night of 31/12/9999***
+- a valid time period may not **continous**, it can be represented by multiple single time interval
+- a solution when indexing on tuple associated with time interval is to use **R-tree**, with 1 dimesion is represent time and other dimension represent attribute being indexed
+- one issue with time interval index by R-tree is that time can be infinite, making the bounding box are very large and have poor performance, this issue can be dealt as follow:
+    - separate non-infinite and and infinite time to stored in separate index, the infinite might store in B+ tree and the non-infinite is store in R-tree
+    - look up would need to search on both indices
+- primary key in a temporal database can be duplicate as long as its time interval is not overlap. To ensure this behavior, a **temporal index** on primary key is needed to efficiently check wether or not the constraint is violated
