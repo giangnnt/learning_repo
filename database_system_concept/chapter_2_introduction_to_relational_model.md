@@ -40,65 +40,68 @@
 - Its operation can be Unary, Binary
 - Database don't allow user to use relational algebra as query language
 
-### 2.6.1 The Select Operation (Sigma)
+### 2.6.1 The Select Operation ($\sigma$)
 - The "SELECT" select tuples that satisfy given 
 ```math
-σdept name = “Physics” ∧ salary>90000 (instructor)
+\sigma_{dept name = “Physics” \wedge salary > 90000} (instructor)
 ```
 
-### 2.6.2 The Project Operation (Pi)
-- mapping value input -> output like a function
+### 2.6.2 The Project Operation ($\Pi$)
+- mapping value input $\rightarrow$ output like a function
 - The "PROJECT" produce new relation with certain attributes left out
 - Any duplicate row is eliminated (use "DISTINCT" in SQL)
 
 ### 2.6.3 Composition of Relational Operations
 - result of Relational Operation is an another Relation
 ```math
-Πname (σdept name = “Physics” (instructor))
+\Pi_{name (σdept name = “Physics” (instructor))}
 ```
 - We can, instead given a name as argument of uprojection, we use a relation that evaluate to a relation
-- Relational Algebra operations can be composed into a Relational Algebra expression by arithmetic operations (+,-,*,/)
+- Relational Algebra operations can be composed into a Relational Algebra expression by arithmetic operations ($+,-,*, \div$)
 
-### 2.6.4 The Cartesian Product Operation (Cross)
-- `(a1,b1), (a1,b2), (a2,b1), (a2,b2)` from Cartesian product in math evaluate to row (tuple) in database
-- `r = r1 x r2`, r in constructed by each possible pair of relation 1 to relation 2
-- if r1 have n rows and r2 have m rows, r will have m * n rows
+### 2.6.4 The Cartesian Product Operation ($\times$)
+- Casterian-Product operation is a combination of two relation $r1$ and $r2$ 
+- instead of creating a new pair of value as in mathmathical, its combine the the result $\rightarrow$ single tuple
+$$r = r1 \times r2$$
+- r in constructed by each possible pair of $r1$ to $r2$
+- if $r1$ have $n$ rows and $r2$ have $m$ rows the number of rows in r will be
+  $$r_{rows} = m * n$$
 
 ### 2.6.5 The Join Operation
 ```math
-σinstructor.ID = teaches.ID (instructor × teaches)
+\sigma_{instructor.ID = teaches.ID} (instructor × teaches)
 ```
-- represent a subset of Cartesian product, satisfies some "Predicate" (a boolean condition) 
+- represent a subset of Cartesian product, satisfies some `predicate` (boolean conditions) 
 ```math
-r ⋈θ s = σθ (r × s) 
+r \bowtie_\theta s = \sigma_\theta (r × s) 
 ```
-- r and s are relation, θ is predicate, ⋈ is join operation
+- $r$ and $s$ are relation, $\theta$ is predicate, $\bowtie$ is join operation
 
 ### 2.6.6 Set Operations
 - We say that relation is equivalent to function in math, because both is a collection of tuple
 ```math
-Πcourse id (σsemester = “Fall” ∧ year=2017 (section)) ∪ Πcourse id (σsemester = “Spring” ∧ year=2018 (section))
+\Pi_{course\_id} (\sigma_{semester = “Fall” \wedge year=2017} (section)) \cup \Pi_{course\_id} (\sigma_{semester = “Spring” \wedge year=2018} (section))
 ```
-- The Union (∪) merge two relation into 1 relation vertically
+- The Union ($\cup$) merge two relation into 1 relation vertically
 - To Union relations, realtion must be "compatible" which conditions are:
     + relatations must have the same "arity" (in math, arity refer to number of argument of a function)
-    + the type of ith attribute of both relation must be the same for each i
+    + the type of ith attribute of both relation must be the same for each $i$
 
-- the "Intersect" (∩) produce a relation containing tuple that appear in r1 as well in r2
-- the "Set-difference" (−) produce a relation containing tuple that appear in 1 relation but not the other
+- the "Intersect" ($\cap$) produce a relation containing tuple that appear in $r1$ as well in $r2$
+- the "Set-difference" ($−$) produce a relation containing tuple that appear in 1 relation but not the other
 
 ### 2.6.7 The Assignment Operation
-- Assign result relation into temp relation variable. denoted by (←), work like assignment in programming language
+- Assign result relation into temp relation variable. denoted by ($\leftarrow$), work like assignment in programming language
 - Allow query can be written in sequential, consisting of a series assignment (CTE, subquery)
 
-### 2.6.8 The Rename Operation (Rho)
+### 2.6.8 The Rename Operation ($\rho$)
 ```math
-ρx (E)
+\rho_x (E)
 ```
-- return the result of expression E in name x
+- return the result of expression E in name $x$
 - A relation is considered a relational-algebra expression
 ```math
-ρx(A1 ,A2 ,…,An ) (E)
+\rho_{x(A_1 ,A_2 ,…,A_n )} (E)
 ```
 - this form of rename operation can be used to give names to attributes in the results of relational algebra
 
