@@ -117,11 +117,11 @@ $$n = \frac{\text{block size}}{\text{size of search key} + \text{size of pointer
         + the node contain up to $m-1$ search key value
         $$(P_1, K_1, P_2, K_2,..., P_{m-1}, K_{m-1}, P_m)$$
         + most left pointer $P_1$ point to the subtree with search key value less than $K_1$
-        $$V < K_1$$
+        $$ {}^*P_1 = V_1 < K_1$$
         + middle pointer $P_i$ point to the subtree with search key value greater than or equal to $K_{i-1}$ and less than $K_i$
-        $$K_{i-1} \le V < K_i$$
+        $$K_{i-1} \le {}^*P_i = V_i < K_i$$
         + most right pointer $P_m$ point to the subtree with search key value greater than or equal to $K_{m-1}$
-        $$V \ge K_{m-1}$$
+        $${}^*P_m = V_m \ge K_{m-1}$$
 3) `root node` have the number of pointer $P$ can go lower than $\frac{n}{2}$, but it must have at least 2 pointer (1 reason is I/O optimization)
 - $B$ in $B^+$ tree refer to ***balanced***
 - $B^+$ require being ***balanced***, meaning every path from root to a leaf is the same to ensure good performance for search, insertion, deletion (continued Bottom growth up )
