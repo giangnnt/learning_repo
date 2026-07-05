@@ -160,7 +160,61 @@ that plan, and returns the answers to the query.
     - all pointers in the same block will consecutively placed
     - reduce the cost of random I/O, block are now sequentially I/O
 - A10 (disjunctive selection by union of identifiers): if access path are available on ***all*** individual condition of a disjuction selection we then
-  - for each individual condition, we scan it's index and *yield* pointers back to parent operator (union)
+  - for each individual condition, we scan it's index and *yield* pointers back to parent operator (union), often use with bitmap (continue bitmap indices or)
   - union all retrieved pointers to create a new set of pointers
   - we then use the pointers to retrieve the actual record
 - if 1 of the condition dont have access path, the have to perform linear scan of the relation to find tuples that match the condition $\rightarrow$ the index scan on other index will become meaningless
+
+## 15.4 Sorting
+Quick-sort (In-Memory) $\rightarrow$ External Merge Sort (Disk-Optimized) $\rightarrow$ Replacement Selection (I/O Pipelined) $\rightarrow$ Cache-Conscious/Radix Sort (CPU/Cache-Optimized)
+- Sorting is important in database system for two reasons:
+  - SQL queries can specify output to be sorted
+  - several relational operation can be implemented efficiently if the input are sorted
+- we can sort a relation logically by building an index on the sort key but reading the physical record need the random I/O which can be costly
+- we desire to order records physically 
+- in case of small relation that can fit in memory, we can use standard technique such as quick-sort
+- for large relation that cannot fit in memory, we can use `external sort-merge` which is a disk-optimized sorting algorithm
+
+### 15.4.1 External Sort-Merge Algorithm
+- sorting a relation that is too large to fit in main memory is called `external sorting`
+- most common external sorting algorithm is `external sort-merge` algorithm
+- to describe the algorithm, we denote $M$ as the number of blocks that can fit in main memory buffer available for sorting
+  1) in ther first stage `runs` are created
+    - runs (chuỗi liên tục không đứt quãng) are sorted subset of the relation, each of size at most $M$ blocks
+    ```
+    i = 0;
+    while (end of relation)
+      read next M blocks of relation into memory buffer;
+      sort the M blocks in memory buffer;
+      write the sorted M blocks back to disk as run file Ri;
+      i = i + 1;
+    end
+    ```
+  2) in the second stage, with the precondition that total number of runs $N$ is less than $M$ (to hold one atleast oneblock for output) runs are *merged* as follows
+  ```
+  for each runs Ri of N run files
+    read the first block of Ri into memory buffer;
+  end
+  while (not all runs are empty)
+    take the first tuple (sorted order) among all block in memory buffer; 
+    write the tuple to output buffer and remove it from the block;
+    if any buffer block of Ri is empty and not end of file Ri
+      read the next block of Ri into memory buffer;
+    end
+  end
+   ``` 
+- the output file is written in block as buffer block is full to reduce the number of I/O operation
+- the standard in-memory sort-merge algorithm called `two-way merge sort`, meaning that it merge 2 runs at a time
+- the generalization of two-way merge sort called `N-way merge sort` is the one the we described above
+- to sort-merge algorithm to work, it is base on transitivity (bắc cầu) of the order relation, we sort a run, get the first block of each run, then compare the first tuple of each block to find the smallest one
+- the choosen tuple is the smallest tuple among smallest block among all runs, which is the smallest tuple among all runs
+- in case the relation is too large to fit in memory, we can use `multi-pass merge sort`. Merge operation is performed in multiple passes, each pass merge $M-1$ runs at a time to create new runs :
+  1) in the first pass, we read $M$ blocks of the relation into memory buffer, sort them and write them back to disk as runs
+  2) if the number of runs is greater than $M-1$, we perform a second pass to merge $M-1$ runs at a time to create new bigger runs, the number of new runs is reduced by the factor $M - 1$ 
+  3) we repeat the process until the number of runs is less than $M-1$, then we perform a final pass to merge all runs into a single sorted file
+
+![](../images/external_sort_merge.png)
+> visualization of multi-passes external sort-merge algorithm
+>> with one tuple fit in a block ($f_r = 1$) and memory hold up to 3 block ($M = 3$) for simplicity
+
+### 15.4.2 Cost Analysis of External Sort-Merge
