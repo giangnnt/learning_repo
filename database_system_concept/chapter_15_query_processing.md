@@ -218,3 +218,28 @@ Quick-sort (In-Memory) $\rightarrow$ External Merge Sort (Disk-Optimized) $\righ
 >> with one tuple fit in a block ($f_r = 1$) and memory hold up to 3 block ($M = 3$) for simplicity
 
 ### 15.4.2 Cost Analysis of External Sort-Merge
+- $b_r$: number of blocks in the relation $r$
+- $M$: number of blocks that can fit in main memory buffer available for sorting
+- $b_b$: number of blocks consecutively written to disk using extent, reduce the number of seek for each block when reading a run
+- total number of passes required to sort the relation:
+$$
+  log_{(M/b_b) - 1}(b_r/M)
+$$
+> $b_r/M$: total number of runs created in the first pass
+>> $M/b_b$: number of runs that can be merged in each pass
+
+- note that each pass require a block read and write for each block in $r$ with 2 exception:
+  - in the last pass, the output might not needed to be written back to disk if the output is pipelined to the next operator
+  - DBMS optimizer can actively adjust number of `stranded run` (left-over run $b_r/M - (M/b_b$ - 1)) to skip and merge in the next to reduce the number I/O operation base on cost model
+- total number of block transfer is:
+$$
+  b_r(2[log_{(M/b_b) - 1}(b_r/M)] + 1)
+$$
+
+- we also account the cost of block seek
+$$
+  2(b_r/M)+b_r/b_b(2[log_{(M/b_b) - 1}(b_r/M)] - 1)
+$$
+> $2(b_r/M)$: number of seek in the first pass, each run require 1 seek to read and 1 seek to write
+>> $b_r/b_b$: number of seek in the remaining pass, each run require 1 seek to read and 1 seek to write
+
