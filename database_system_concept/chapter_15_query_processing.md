@@ -243,3 +243,37 @@ $$
 > $2(b_r/M)$: number of seek in the first pass, each run require 1 seek to read and 1 seek to write
 >> $b_r/b_b$: number of seek in the remaining pass, each run require 1 seek to read and 1 seek to write
 
+## 15.5 Join Operation
+- we use the term `equi-join` to expres $r \Join_{r.A = s.B} s$
+- we also assumn the following infomation about join between relations student $\Join$ takes:
+  - Number of records of student: nstudent = 5000.
+  - Number of blocks of student: bstudent = 100.
+  - Number of records of takes: ntakes = 10, 000.
+  - Number of blocks of takes: btakes = 400.
+
+### 15.5.1 Nested-Loop Join
+- `nested-loop join`: a join algorithm contain a pair of nested **for** loop 
+- `outer relation` is $r$ and `inner relation` is $s$ in our example since $r$ encloses (bao bọc) $s$
+- we use notation $t_r . t_s$ to indicate concatination of attributes in tuples of relations $r$ and $s$
+- nested-loop join requires no indices and can be use regardless of what the join condition
+- natural join in an extending to nested-loop join, it additionally elliminate dupplication in $t_r . t_s$
+- nested-loop join in expensive since it have to considered $n_r * n_s$ (numbers of tuples in $r$ and $s$ respectively) pairs of tuples
+  ```go
+  for t_r range r
+    for t_s range s
+       if (t_r.t_s) satisfy θ -> add (t_r.t_s) to result
+    end
+  end
+  ```
+- case worst case: memory buffer can only hold 2 blocks, 1 for $r$ and 1 for $s$ the total of block transfer is 
+  $$
+    b_r + n_r * b_s
+  $$
+  - $b_r$ is number of block in $r$, it needed to scanned 1 time
+  - for each tuple in $r$, it have to test with every single tuple in $s$ so a full scan with total $b_s$ is needed
+  - but since there are not enough memory so each $b_r$ is evicted and refetch again for new tuple $n_r$ 
+  - with the assumtion that relation in store sequentially, total number of seek is:
+  $$b_r + n_r$$
+- in the best case: memory buffer is enough to fit both relations total number of block transfer is:
+  $$b_r + b_s$$
+  - with total 2 seeks require
