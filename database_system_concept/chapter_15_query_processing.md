@@ -246,10 +246,10 @@ $$
 ## 15.5 Join Operation
 - we use the term `equi-join` to expres $r \Join_{r.A = s.B} s$
 - we also assumn the following infomation about join between relations student $\Join$ takes:
-  - Number of records of student: nstudent = 5000.
-  - Number of blocks of student: bstudent = 100.
-  - Number of records of takes: ntakes = 10, 000.
-  - Number of blocks of takes: btakes = 400.
+  - Number of records of student: $n_{student}$ = 5000.
+  - Number of blocks of student: $b_{student}$ = 100.
+  - Number of records of takes: $n_{takes}$ = 10, 000.
+  - Number of blocks of takes: $b_{takes}$ = 400.
 
 ### 15.5.1 Nested-Loop Join
 - `nested-loop join`: a join algorithm contain a pair of nested **for** loop 
@@ -261,9 +261,7 @@ $$
   ```go
   for t_r range r
     for t_s range s
-       if (t_r.t_s) satisfy θ -> add (t_r.t_s) to result
-    end
-  end
+       if (t_r.t_s) satisfy join condition -> add (t_r.t_s) to result
   ```
 - case worst case: memory buffer can only hold 2 blocks, 1 for $r$ and 1 for $s$ the total of block transfer is 
   $$
@@ -274,6 +272,31 @@ $$
   - but since there are not enough memory so each $b_r$ is evicted and refetch again for new tuple $n_r$ 
   - with the assumtion that relation in store sequentially, total number of seek is:
   $$b_r + n_r$$
-- in the best case: memory buffer is enough to fit both relations total number of block transfer is:
+- in the best case: memory buffer is enough to fit **both** or **either** relations total number of block transfer is:
   $$b_r + b_s$$
   - with total 2 seeks require
+- if memory is enough to fit smaller relation, we should use that relation as inner relation, the inner relation then only be read once lead to total number of block transfer down to $b_r + b_s$, the same cost of memory fit entire 2 relation
+
+### 15.5.2 Block Nested-Loop Join
+- if memory is too tight, we can still obtain major saving by process the relation on a per-block basis, its called `block nested-loop join`, a variant of nested-loop join
+- similar to nested-loop join, with per-block process, the block transfer in the worst case is:
+  $$b_r + b_r * b_s$$
+  - with total of seek is:
+  $$2 * b_r$$
+  - we should use the smaller one as the outer relation
+- case of memory fit **both** or **either** relations and memory fit smaller relation is similar to nested-loop join
+```go
+for b_r range r
+  for b_s range s
+    for t_r range b_r
+      for t_s range b_s
+        if (t_r.t_s) satisfy join condition -> add (t_r.t_s) to result
+```
+- if join condition form a key on inner relation, inner loop can terminate as soon as the first match found
+- instead of using block for blocking unit of outer relation, we use $M - 2$ block ($M$ is number of block in memory), the cost of block transfer reduce to 
+$$b_r + (b_r/(M-2)) * b_s$$
+- and to total of seek is: 
+$$2(b_r/(M-2))$$
+- since we need to scan block over and over again, we can scan inner loop **forward** and **backward**, this technique ensure last use blocks remain in the buffer and reduce the I/O for that blocks
+
+### 15.5.3 Indexed Nested-Loop Join
