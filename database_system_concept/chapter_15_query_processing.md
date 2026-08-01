@@ -17,7 +17,7 @@ where salary < 75000;
 - the query can be express as
   - $\Pi_{salary}(\sigma_{salary < 75000}(instructor))$
   - $\sigma_{salary<75000}(\Pi_{salary}(instructor))$
-- after tranformation, query can be excuted in serveral ways. If there are $B^+$ index on the salary we'll use them for faster execution, otherwise we'll scan each tuple to find out if there any tuple math the predicate
+- after transformation, query can be executed in several ways. If there are $B^+$ index on the salary we'll use them for faster execution, otherwise we'll scan each tuple to find out if there any tuple math the predicate
 - to specify how to evaluate query, not only we look at relational-algebra expression but we also look at `annotation`, an instruction to specify which algorithm is use, specific operation or which indexes is use
 - `evaluation primitive` a evaluation primitive is a basic physical (or execution) unit that cannot be further divided during query planning; it specifies a relational-algebra operation annotated with instructions on how to evaluate it.
 - a sequence of evaluation primitive called a `query-execution plan` or `query-evaluation plan`
@@ -46,12 +46,12 @@ that plan, and returns the answers to the query.
   - $S$ number of random I/O access
   - $t_S$ average block access-time (disk seek + rotational latency)
   
-  |$(4\ kb/\text{block})$|HDD|SSD (SATA)|SSD (PCIe)|Main Memory|
-  |-|-|-|-|-|
-  |$t_T$|$0.1\ ms$|$10\ \mu s$|$2\ \mu s$|$<1\ \mu s$|
-  |$t_S$|$4\ ms$|$90\ \mu s$|$20-60\ \mu s$|$<100\ ns$|
-  |transfer rate|$40\ mb/s$|$400\ mb/s$|$2\ gb/s$|$>4\ gb/s$|
-  |block reads per second|$250$|$10,000$|$50,000-15,000$|$>10,000,000$|
+  | $(4\ kb/\text{block})$ | HDD        | SSD (SATA)  | SSD (PCIe)      | Main Memory   |
+  | ---------------------- | ---------- | ----------- | --------------- | ------------- |
+  | $t_T$                  | $0.1\ ms$  | $10\ \mu s$ | $2\ \mu s$      | $<1\ \mu s$   |
+  | $t_S$                  | $4\ ms$    | $90\ \mu s$ | $20-60\ \mu s$  | $<100\ ns$    |
+  | transfer rate          | $40\ mb/s$ | $400\ mb/s$ | $2\ gb/s$       | $>4\ gb/s$    |
+  | block reads per second | $250$      | $10,000$    | $50,000-15,000$ | $>10,000,000$ |
   > base on data of 2018 model
 - database ideally perform a test to estimate $t_T$ and $t_S$ for specific system/storage device as part of software installation
 - alternatively, user can input sprcific number in configration files
@@ -83,16 +83,16 @@ that plan, and returns the answers to the query.
   - linear search generally slower than other algorithms
 - cost estimate for linear scan and other algorithm are shown below
 
-||Algorithm|Cost|Reason|
-|-|-|-|-|
-|A1|Linear Search|$t_S + b_r * t_T$|initial seek plus number of blocks in the file multiply by time to transfer a block|
-|A1|Linear Search, Equality on Key|Average case $t_S + (\frac{b_r}{2}) * t_T$|scan can be terminated ass soon as required record is found, but in the worst case, $b_r$ block transfer is still required|
-|A2|Clustering $B^+$ tree Index, Equality on Key|$(h_i + 1) * (t_T + t_S)$|$h_i$ denote the height of index, plus $1$ I/O to fetch the record, each of the I/O operation require a block seek + block transfer|
-|A3|Clustering $B^+$ tree Index, Equality on Non-key|$h_i * (t_T + t_S) + t_S + b * t_T$|each levle of tree require a block seek and transfer, at leaf node level, we 1 more seek to find the first block, then sequentially transfer block since its a clustering index|
-|A4|Secondary $B^+$ tree Index, Equality on Key|$(h_i + 1) * (t_T + t_S)$|similar to clustering index|
-|A4|Secondary $B^+$ tree Index, Equality on Non-key|$(h_i + n) * (t_T + t_S)$|the part for tree height is similar to other algorithms, for each entry found, a seak and transfer is required since each entry is may located in different block|
-|A5|Clustering $B^+$ tree Index, Comparison|$h_i * (t_T + t_S) + t_S + b * t_T$|similar to A3, equality on non-key|
-|A6|Secondary $B^+$ tree Index, Comparison|$(h_i + n) * (t_T + t_S)$|similar to A4, equality on non-key|
+|     | Algorithm                                        | Cost                                       | Reason                                                                                                                                                                          |
+| --- | ------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | Linear Search                                    | $t_S + b_r * t_T$                          | initial seek plus number of blocks in the file multiply by time to transfer a block                                                                                             |
+| A1  | Linear Search, Equality on Key                   | Average case $t_S + (\frac{b_r}{2}) * t_T$ | scan can be terminated ass soon as required record is found, but in the worst case, $b_r$ block transfer is still required                                                      |
+| A2  | Clustering $B^+$ tree Index, Equality on Key     | $(h_i + 1) * (t_T + t_S)$                  | $h_i$ denote the height of index, plus $1$ I/O to fetch the record, each of the I/O operation require a block seek + block transfer                                             |
+| A3  | Clustering $B^+$ tree Index, Equality on Non-key | $h_i * (t_T + t_S) + t_S + b * t_T$        | each levle of tree require a block seek and transfer, at leaf node level, we 1 more seek to find the first block, then sequentially transfer block since its a clustering index |
+| A4  | Secondary $B^+$ tree Index, Equality on Key      | $(h_i + 1) * (t_T + t_S)$                  | similar to clustering index                                                                                                                                                     |
+| A4  | Secondary $B^+$ tree Index, Equality on Non-key  | $(h_i + n) * (t_T + t_S)$                  | the part for tree height is similar to other algorithms, for each entry found, a seak and transfer is required since each entry is may located in different block               |
+| A5  | Clustering $B^+$ tree Index, Comparison          | $h_i * (t_T + t_S) + t_S + b * t_T$        | similar to A3, equality on non-key                                                                                                                                              |
+| A6  | Secondary $B^+$ tree Index, Comparison           | $(h_i + n) * (t_T + t_S)$                  | similar to A4, equality on non-key                                                                                                                                              |
 
 - $h_i$ represent the height of the $B^+$ tree, most optimizer assume that all non-leaf node is already in the buffer since ussually, less than 1% of the nodes in the $B^+$ tree are non-leaf node 
 - this assumption can be simplify by setting $h_i = 1$
@@ -300,3 +300,83 @@ $$2(b_r/(M-2))$$
 - since we need to scan block over and over again, we can scan inner loop **forward** and **backward**, this technique ensure last use blocks remain in the buffer and reduce the I/O for that blocks
 
 ### 15.5.3 Indexed Nested-Loop Join
+- if index is available for inner relation, `indexed nested-loop join`, it will be used to look up tuples in $s$ which satisfy the join condition with each tuple $t_r$ in $r$
+- database can also create a `temporary index` for temporary evaluationg join operation
+- the cost of indexed nested-loop join can be calculated as follow:
+  - for each tuple of outer ralation $r$, we perform an index loop up on join condition for relation $s$
+  - we then retrieve relevant tuples
+- in the worst case where there are only 2 block, one for $r$ and one for index, disk head have to moved between each I/O, the cost can be calculated as:
+$$b_r(t_T+t_S)+n_r*c$$
+> $c$ is the cost of single selection algorithm (indices) using join condition, section 15.3 already cover that
+- if indices are available on both relation, it generally more efficiently when choosing smaller relation as the outer relation ($n_r*c$) 
+
+### 15.5.4 Merge Join
+- `merge-join` algorithm ( also called `sort-merge-join` algorithm), let $R \cap S$ denote common attributes and both relation are sorted on $R \cap S$
+
+### 15.5.4.1 Merge-Join Algorithm
+- *JoinAttrs*: attributes in $R \cap S$
+- $t_r \bowtie t_s$ represent concatination of 2 tuples which have the same value *JoinAttrs*
+- the algorithm operate as following
+  - group S of tuples $t_s$ which have the same value for *JoinAttrs* (called *CurrAttrs*) are read to memory (assumpt that group S fit in main memory)
+  - for each tuple $t_r$ in R, if equally on *CurrAttrs*, then perform a casterian-product with S
+  - continue unitl $t_r$[*JoinAttrs*] > *CurrAttrs* then we select another group of S until both relation empty
+- The merge-join algorithm
+can also be easily extended from natural joins to the more general case of equi-joins.
+
+### 15.5.4.2 Cost Analysis
+- Once the relation are sorted, the merge-join algorithm require $b_r + b_s$ blocks to be transfered
+- total of block seek can be calculated as $b_r/b_b + b_s/b_b$
+- if possible, allocate more buffer block can significant decrease the cost since disk seek is much more expensive than block transfer
+- if the relation are not sorted, the cost of sorting is also added as well
+
+### 15.5.4.3 Hybrid Merge Join
+- there is a variation of merge join algorithm that support unsorted relation
+- if they are unsorted, and have secondary indices on both join attributes, we could use the their leaf node (which are sorted by search key, join condition) to perform merge join
+- the result might consist tuples for example like this: 
+  $$K_r:RID_r:K_s:RID_s$$
+  > $K_r = K_s$
+- but to fetch the result, we must seek and transfer each block contain r and s, which might result in a random I/O since record might be in different block
+-  another approach is when one relation already sorted and other relation have indices
+  - we scan other indices leaf to get list of RID
+  - then perform a merge join which result in tuples $\rightarrow t_r:RID_s$ and written temp result file 
+  - we then sorted temp result file on block ID in $RID_s$
+  - sequentially scan the file and return the result
+  
+### 15.5.5 Hash Join 
+- the idea of hash join is to partition the tuple of each relations into sets which have the same hash value on *JoinAttrs*
+- we assumn that:
+  - $h$ a hash function mapping *JoinAttrs* into list of buckets {0, 1,..., $n_h$} 
+  > $n_h$ denote the number of partitions, hash function create $n_h$ + 1 partitions
+  - $r_0, r_1,...,{r_n}_h$ denote partitions of tuples in r, for $t_r \in r$, put $t_r$ in partition $r_i$ which $i = h(t_r[JoinAttrs])$
+  - the similar is for relation $s$
+
+#### 15.5.5.1 Basics
+- the basics idea is this, tuple r and s having the same *JoinAttrs*, both tuples are hashed to some value $i$, $r$ has to be in $r_i$ and $s$ in $s_i$
+- $r_i$ need only be compared only with $s_i$ and not other partition
+- but in the same partition, it might contains records with different *JoinAttrs*
+- Pigeonhole Principle: if we capture $n+1$ pigeons into $n$ cages $\rightarrow$ there will be atleast one cage that have $\ge 2$ pigeons
+- hash function is a 'function' $\rightarrow$ it ensure that the same *JoinAttrs* cannot be hashed into different hashed value $\rightarrow$ cannot contain the same *JoinAttrs* in different partitions
+- after partitioning of the relations, we might continue to use indexed nested-loop join on each partition $i..n_h$ by:
+  - build a hash index on each $s_i$
+  - for each tuples in $r_i$, **probes** (look up: compute a hash value on *JoinAttrs* and use it to locate mathed records on $s_i$, then compared equality on *JoinAttrs*)
+  - relation $s$ called **build input** and $r$ is **probe input**
+- second hash function must be different to the earlier hash function but still need to be applied on *JoinAttrs*
+- the build and probe phase require a single pass though both relation
+- the value $n_h$ must be chosen carefully:
+  -  if the partition is too small, 
+     -  number of block in each partition will be too large to fit in memory buffer $\rightarrow$ we must recursively partition the relation until each partition fit in memory buffer
+     -  in the build phase: the hash table overhead is large and the
+- we should choose the smaller relation as the build input to reduce the size of hash table and increase the probability that it will fit in memory buffer as
+$$
+n_h \ge \frac{b_s}{M} 
+$$
+> $M$ is the number of block in memory buffer, $b_s$ is the number of block in relation $s$
+- we also need to consider the hash table so the $n_h$ is generally larger
+#### 15.5.5.2 Recursive Partitioning
+- if $n_h$ is greater than the number of block in memory buffer, we might have to recursively partition the relation until each partition fit in memory buffer
+- a relation does not need to be recursively partitioned if 
+$$M > n_h + 1 \quad \text{ or } \quad M > (b_s/M) + 1$$ 
+> which simplify to 
+$$
+M > 2 \sqrt{b_s}$$
+- The partitioning process required writing each relation to disk, then re-reading it 
