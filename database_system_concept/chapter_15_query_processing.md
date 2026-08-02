@@ -378,5 +378,30 @@ $$
 $$M > n_h + 1 \quad \text{ or } \quad M > (b_s/M) + 1$$ 
 > which simplify to 
 $$
-M > 2 \sqrt{b_s}$$
+M > \sqrt{b_s}$$
 - The partitioning process required writing each relation to disk, then re-reading it 
+- for example: a 1 GB = 1.048.576 KB. assume that the disk page is 4 KB then total memory needed is $\sqrt{\frac{1.048.576}{4}} = 2048$ blocks or 2MB
+#### 15.5.5.3 Handling of Overflows
+- **Hash-table Overflows** happen when:
+  - many tuples with the same *JoinAttrs* are hashed to the same value
+  - hash function is not uniform and random enough
+- some partition might end up having more tuples than others and the partitioning is said to be **skewed** 
+- to handle the overflow, we can increase small number of partitions (`fudge factor`), usually 20% of the original $n_h$ $\rightarrow$ reduce the size of partition and hash index, make it smaller than memory buffer
+- if overflow still happen, we can consider two other options
+  - `overflow resolution`: both build and probe partition is further partitioned
+  - `overflow avoidance`: actively partition the build input into many small partitions, and then combine some of the small partitions into larger partitions which fit in memory buffer, the probe partition are partitioned and merge correspondingly
+#### 15.5.5.4 Cost of Hash Join
+- we first assume there is no hash-table overflow
+- the cost of block transfer for hash join can be calculated and explain as follows:
+$$
+3(b_r + b_s) + 4n_h
+$$
+  - in the partitioning phase, we need to read and write $b_r$ and $b_s$ blocks $\rightarrow$ cost $2(b_r + b_s)$
+  - the build and probe phase require a single pass though both relation $\rightarrow$ cost $(b_r + b_s)$
+  - $4n_h$: in the end of partitioning phase, the buffer for partitioning might not be fully filled with the tuples, but we still need to flush them to the disk for both of the relation, result in $2n_h$ disk I/O
+  - the same is applied to the build and probe, result in total of $4n_h$ disk I/O
+- assmume $b_b$ blocks is alocated to each partition, the seek cost can be calculated:
+  - in the partitioning phase: $2(b_r/b_b + b_s/b_b)$ is the amount of seek for 2 relation
+  - as each partition can be read sequentially in only one pass for each relation, in the build and probe phase, seek cost is $2n_h$
+- now we consider when recursively partition is require
+- 
