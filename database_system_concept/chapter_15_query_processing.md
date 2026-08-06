@@ -357,7 +357,7 @@ can also be easily extended from natural joins to the more general case of equi-
 - Pigeonhole Principle: if we capture $n+1$ pigeons into $n$ cages $\rightarrow$ there will be atleast one cage that have $\ge 2$ pigeons
 - hash function is a 'function' $\rightarrow$ it ensure that the same *JoinAttrs* cannot be hashed into different hashed value $\rightarrow$ cannot contain the same *JoinAttrs* in different partitions
 - after partitioning of the relations, we might continue to use indexed nested-loop join on each partition $i..n_h$ by:
-  - build a hash index on each $s_i$
+  - build a hash index on each $s_i$, create a **in memory** hash table
   - for each tuples in $r_i$, **probes** (look up: compute a hash value on *JoinAttrs* and use it to locate mathed records on $s_i$, then compared equality on *JoinAttrs*)
   - relation $s$ called **build input** and $r$ is **probe input**
 - second hash function must be different to the earlier hash function but still need to be applied on *JoinAttrs*
@@ -365,8 +365,8 @@ can also be easily extended from natural joins to the more general case of equi-
 - the value $n_h$ must be chosen carefully:
   -  if the partition is too small, 
      -  number of block in each partition will be too large to fit in memory buffer $\rightarrow$ we must recursively partition the relation until each partition fit in memory buffer
-     -  in the build phase: the hash table overhead is large and the
-- we should choose the smaller relation as the build input to reduce the size of hash table and increase the probability that it will fit in memory buffer as
+     -  in the build phase: the hash table and the partition itself might not fit in memory buffer
+- we should choose the smaller relation as the build input to reduce the size of hash table and increase the probability that it will fit in memory buffer, so the $n_h$ is calculated as:
 $$
 n_h \ge \frac{b_s}{M} 
 $$
@@ -376,9 +376,8 @@ $$
 - if $n_h$ is greater than the number of block in memory buffer, we might have to recursively partition the relation until each partition fit in memory buffer
 - a relation does not need to be recursively partitioned if 
 $$M > n_h + 1 \quad \text{ or } \quad M > (b_s/M) + 1$$ 
-> which simplify to 
-$$
-M > \sqrt{b_s}$$
+which simplify to: 
+$$M > \sqrt{b_s}$$
 - The partitioning process required writing each relation to disk, then re-reading it 
 - for example: a 1 GB = 1.048.576 KB. assume that the disk page is 4 KB then total memory needed is $\sqrt{\frac{1.048.576}{4}} = 2048$ blocks or 2MB
 #### 15.5.5.3 Handling of Overflows
@@ -388,20 +387,37 @@ M > \sqrt{b_s}$$
 - some partition might end up having more tuples than others and the partitioning is said to be **skewed** 
 - to handle the overflow, we can increase small number of partitions (`fudge factor`), usually 20% of the original $n_h$ $\rightarrow$ reduce the size of partition and hash index, make it smaller than memory buffer
 - if overflow still happen, we can consider two other options
-  - `overflow resolution`: both build and probe partition is further partitioned
+  - `overflow resolution`: both build and probe partition is further partitioned, 
   - `overflow avoidance`: actively partition the build input into many small partitions, and then combine some of the small partitions into larger partitions which fit in memory buffer, the probe partition are partitioned and merge correspondingly
 #### 15.5.5.4 Cost of Hash Join
 - we first assume there is no hash-table overflow
-- the cost of block transfer for hash join can be calculated and explain as follows:
-$$
-3(b_r + b_s) + 4n_h
-$$
-  - in the partitioning phase, we need to read and write $b_r$ and $b_s$ blocks $\rightarrow$ cost $2(b_r + b_s)$
-  - the build and probe phase require a single pass though both relation $\rightarrow$ cost $(b_r + b_s)$
-  - $4n_h$: in the end of partitioning phase, the buffer for partitioning might not be fully filled with the tuples, but we still need to flush them to the disk for both of the relation, result in $2n_h$ disk I/O
-  - the same is applied to the build and probe, result in total of $4n_h$ disk I/O
-- assmume $b_b$ blocks is alocated to each partition, the seek cost can be calculated:
+  - the cost of block transfer for hash join can be calculated and explain as follows:
+  $$3(b_r + b_s) + 4n_h$$
+    - in the partitioning phase, we need to read and write $b_r$ and $b_s$ blocks $\rightarrow$ cost $2(b_r + b_s)$
+    - the build and probe phase require a single pass though both relation $\rightarrow$ cost $(b_r + b_s)$
+    - $4n_h$: in the end of partitioning phase, the buffer for partitioning might not be fully filled with the tuples, but we still need to flush them to the disk for both of the relation, result in $2n_h$ disk I/O
+    - the same is applied to the build and probe, result in total of $4n_h$ disk I/O
+  - assmume $b_b$ is blocks allocated to each buffer input and output, the seek cost can be calculated:
   - in the partitioning phase: $2(b_r/b_b + b_s/b_b)$ is the amount of seek for 2 relation
   - as each partition can be read sequentially in only one pass for each relation, in the build and probe phase, seek cost is $2n_h$
 - now we consider when recursively partition is require
-- 
+  - the expected number of passes required to recursively partition is:
+  $$log_{(M/b_b) - 1}(b_r/M)$$
+  - $(M/b_b)-1$: reduce factor of partition's size after each pass(also increase amount of partition), $-1$ is the exclude for the input buffer in the creation of partition
+  - $b_r/M$: target number of partitions that meet the requirement that each partition fit in memory buffer 
+  - since for each pass, every block in s read and written out so the cost for partitioning phase for the relation $s$ is 
+  $$2b_s(log_{(M/b_b) - 1}(b_r/M))$$
+  - relation $r$ is partitioned in the same way so the estimated cost for hash join is:
+  $$2(b_r + b_s)(log_{(M/b_b) - 1}(b_r/M)) + b_r + b_s$$
+  - $b_r + b_s$: after partitioning, each relation have to be read and for build and probe phase
+  - the cost of block seek (excluding the small number of seek during build and probe phase) can be calculated as:
+  $$2(b_r/b_b + b_s/b_b)(log_{(M/b_b) - 1}(b_r/M))$$
+  - note that recursively partitioning for each partition is done separately, meaning if a partition $s_i$ is partitioned, it's correspond partition $r_i$ is also partitioned, but not the $s_{i+1}$
+- if the memory is large enough, we can skip the partitioning phase and directly build and probe the relation
+- the cost estimate goes down to $b_r + b_s$ block transfer and two seeks
+- in case of outer relation is small and index lookups fetch a few tuples from the inner relation $\rightarrow$ **Indexed Nested-Loop Join** can have much lower cost
+- in case of outer relation is large and sencondary index (result in random I/O) lookups fetch many tuples, hash join take advantage in this case
+- therefor, knowing the size of outer relation can help to choose better, more efficient join strategy
+- but it is not always easy to determine the size of the relation (case there is selection condition on the outer relation), some system allow dynamic choice of join strategy after finding out the size of outer relation 
+- example for the implementation: if return number of tuples for outer relation when selection condition is $< 100$, we keep using indexed nested-loop join, if return number of tuples is $\ge 100$, we switch to hash join
+### 15.5.5.5 Hybrid Hash Join
