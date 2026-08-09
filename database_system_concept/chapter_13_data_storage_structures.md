@@ -94,7 +94,7 @@
 - **partitioning:** the process of dividing a large relation into smaller relations
     + provide a universal interface to access the data and translate the query into operations on the smaller relations
     + partition must not overlap
-    + partition using lexicographical order so write a sub-partitioning if needed
+    + partition using lexicographical order making data easy to be skewed so write a sub-partitioning if needed
 
 ## 13.4 Data Dictionary Storage
 - dbms also store about info about relations, attributes, indexes, etc. called "metadata" in a special file called **data dictionary** or **system catalog**

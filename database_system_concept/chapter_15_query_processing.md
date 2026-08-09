@@ -215,7 +215,7 @@ Quick-sort (In-Memory) $\rightarrow$ External Merge Sort (Disk-Optimized) $\righ
 
 ![](../images/external_sort_merge.png)
 > visualization of multi-passes external sort-merge algorithm
->> with one tuple fit in a block ($f_r = 1$) and memory hold up to 3 block ($M = 3$) for simplicity
+> with one tuple fit in a block ($f_r = 1$) and memory hold up to 3 block ($M = 3$) for simplicity
 
 ### 15.4.2 Cost Analysis of External Sort-Merge
 - $b_r$: number of blocks in the relation $r$
@@ -226,7 +226,7 @@ $$
   log_{(M/b_b) - 1}(b_r/M)
 $$
 > $b_r/M$: total number of runs created in the first pass
->> $M/b_b$: number of runs that can be merged in each pass
+> $M/b_b$: number of runs that can be merged in each pass
 
 - note that each pass require a block read and write for each block in $r$ with 2 exception:
   - in the last pass, the output might not needed to be written back to disk if the output is pipelined to the next operator
@@ -241,7 +241,7 @@ $$
   2(b_r/M)+b_r/b_b(2[log_{(M/b_b) - 1}(b_r/M)] - 1)
 $$
 > $2(b_r/M)$: number of seek in the first pass, each run require 1 seek to read and 1 seek to write
->> $b_r/b_b$: number of seek in the remaining pass, each run require 1 seek to read and 1 seek to write
+> $b_r/b_b$: number of seek in the remaining pass, each run require 1 seek to read and 1 seek to write
 
 ## 15.5 Join Operation
 - we use the term `equi-join` to expres $r \Join_{r.A = s.B} s$
@@ -320,6 +320,7 @@ $$b_r(t_T+t_S)+n_r*c$$
   - group S of tuples $t_s$ which have the same value for *JoinAttrs* (called *CurrAttrs*) are read to memory (assumpt that group S fit in main memory)
   - for each tuple $t_r$ in R, if equally on *CurrAttrs*, then perform a casterian-product with S
   - continue unitl $t_r$[*JoinAttrs*] > *CurrAttrs* then we select another group of S until both relation empty
+- there is also a fall back algorithm for merge-join when group S is too large to fit in memory, we can then use block nested-loop join to perform the join on the specific group S
 - The merge-join algorithm
 can also be easily extended from natural joins to the more general case of equi-joins.
 
@@ -372,6 +373,7 @@ n_h \ge \frac{b_s}{M}
 $$
 > $M$ is the number of block in memory buffer, $b_s$ is the number of block in relation $s$
 - we also need to consider the hash table so the $n_h$ is generally larger
+
 #### 15.5.5.2 Recursive Partitioning
 - if $n_h$ is greater than the number of block in memory buffer, we might have to recursively partition the relation until each partition fit in memory buffer
 - a relation does not need to be recursively partitioned if 
@@ -380,6 +382,7 @@ which simplify to:
 $$M > \sqrt{b_s}$$
 - The partitioning process required writing each relation to disk, then re-reading it 
 - for example: a 1 GB = 1.048.576 KB. assume that the disk page is 4 KB then total memory needed is $\sqrt{\frac{1.048.576}{4}} = 2048$ blocks or 2MB
+
 #### 15.5.5.3 Handling of Overflows
 - **Hash-table Overflows** happen when:
   - many tuples with the same *JoinAttrs* are hashed to the same value
@@ -389,6 +392,7 @@ $$M > \sqrt{b_s}$$
 - if overflow still happen, we can consider two other options
   - `overflow resolution`: both build and probe partition is further partitioned, 
   - `overflow avoidance`: actively partition the build input into many small partitions, and then combine some of the small partitions into larger partitions which fit in memory buffer, the probe partition are partitioned and merge correspondingly
+
 #### 15.5.5.4 Cost of Hash Join
 - we first assume there is no hash-table overflow
   - the cost of block transfer for hash join can be calculated and explain as follows:
@@ -420,4 +424,62 @@ $$M > \sqrt{b_s}$$
 - therefor, knowing the size of outer relation can help to choose better, more efficient join strategy
 - but it is not always easy to determine the size of the relation (case there is selection condition on the outer relation), some system allow dynamic choice of join strategy after finding out the size of outer relation 
 - example for the implementation: if return number of tuples for outer relation when selection condition is $< 100$, we keep using indexed nested-loop join, if return number of tuples is $\ge 100$, we switch to hash join
+
 ### 15.5.5.5 Hybrid Hash Join
+- in the partitioning phase, number of blocks that memory are need to partition a relation is
+$$(n_h + 1) \times b_b$$
+> for partitioning, we need to $b_b \times n_h$ block as a output buffer
+> and a $b_b$ block as a input buffer
+- we can use the remaining memory $M - (n_h + 1) \times b_b$ storing specific $s_0$ partion of build input
+- hash function is designed so that the hash index is fit in remaining memory buffer
+- at the end of partitioning, $s_0$ should completely in memory and hash index can be build
+- in the partitioning phase of $r$, instead of writing $s_0$ to disk, we use the output of to directly probe on hash index of $s_0$ and generate the output tuples and can be discard after use so no occupied memory
+- this save the cost of read and write $s_0$ and $r_0$ 
+- the saving is significant if $b_s \gtrsim M$, reduce the `cliff effect` (the input is slightly change but have the significant affect on the output)
+
+### 15.5.6 Complex Joins
+- for conjunctive condition we do the following
+  - computing the result of one of these individual condition by using above join techniques
+  - use the intermediate result to compute next condition unitl we have the final result
+- for disjunctive condition can be computed as union of individual join result
+
+### 15.5.7 Joins over Spatial Data
+- with spatial data, merge join, hash join and nested-loop join are not applicable because of the spatial data characteristics
+- some options left are indexed nested-loop join and & spatial indices
+
+## 15.6 Other operations
+### Deduplicate Ellimination
+- we can implement deduplicate by sorting the relation
+  - identical tuples are adjacent and can be eliminated
+  - during sort algorithm like external sort merge duplicate can also ce eliminate duplucatio in run creating phase and merge phase
+  - this approach share the same cost as merge-sort algorithm
+- another approach is to use hash-join algorithm
+  - while hash table is being creating during the build phase, tuples is only inserted only if it not already in the hash table
+  - the cost is estimate is the same as hash-join algorithm
+- cost of deduplicate is pretty high, SQL require an explicit request from user (i.e. 'DISTINCT' keyword, primary key) otherwise, it will retained all the duplication
+
+### 15.6.2 Projection
+- in relational algebra, projection must be explicit in the query, by using `SELECT DISTINCT`
+  - projection can be done in 2 step
+    - project tuple at a time, extract only required attribute from tuple
+    - deduplicate (as previously discuss)
+- if the required attribute ($A \subseteq \text{candidate key}$), we can skip the deduplicate step
+
+### 15.6.3 Set Operations
+- we can implement union, intersect and except by sort both of the relations and using `two-pointer scan`, the algorithm behave slightly differently for each operation
+  - for all of these operations, the cost is $b_r + b_s$ block transerfer 
+  - the worst case is one block buffer for each relation which lead to $b_r + b_s$ block seek. The condition is reduced with extra buffer block allocated
+  - if relation is not sorted, we should include the cost of sorting, also the two relation must have the same sort order
+- another approach is to use hash-join algorithm, and the behavior is also different for each operation
+
+### 15.6.4 Outer Join
+- outer join operations by using one of two-strategies:
+  1) don't modify the join algorithms: compute the join result, save the result in a temporary relation. Then compute the tuples that not participate in the join using set difference operation described in section 15.6.3 and add them to the result
+  2) modify the join algorithms:
+     - nested-loop join: tuples in the outer relation that do not participate in the join are added to the result, but is complicated to implement full outer join since we need to keep track of which tuples in the inner relation which have to be discarded and reloaded many times
+     - merge join: can be modified and extent to full outer join, left and right join easily
+     - hash join: in the probe phase, we can keep track of which tuples in both probe input and in hash table which have not been matched and later added in the result relation
+
+### 15.6.5 Aggregation
+- aggregation can be implemented the same way as deduplication. As groups are being constructed, we can implement the aggregation function on the fly
+- 
