@@ -472,6 +472,8 @@ $$(n_h + 1) \times b_b$$
   - if relation is not sorted, we should include the cost of sorting, also the two relation must have the same sort order
 - another approach is to use hash-join algorithm, and the behavior is also different for each operation
 
+- `inverted index`: a data structure that maps each term to the list of documents that contain it, it is used to efficiently retrieve documents that match a given query term
+
 ### 15.6.4 Outer Join
 - outer join operations by using one of two-strategies:
   1) don't modify the join algorithms: compute the join result, save the result in a temporary relation. Then compute the tuples that not participate in the join using set difference operation described in section 15.6.3 and add them to the result
@@ -481,5 +483,38 @@ $$(n_h + 1) \times b_b$$
      - hash join: in the probe phase, we can keep track of which tuples in both probe input and in hash table which have not been matched and later added in the result relation
 
 ### 15.6.5 Aggregation
-- aggregation can be implemented the same way as deduplication. As groups are being constructed, we can implement the aggregation function on the fly
-- 
+- aggregation can be implemented the same way as deduplication.
+- if the relation are already sorted on the group-by attributes, we can calculate the aggregate function `on the fly`, only one tuples need to be kept in memory buffer for each group $\rightarrow$ saving memory buffer
+- if the relation are not sorted, the can be inserted into a sorted tree or hash table and calculate the aggregate function on the fly for each group
+- if sorted tree or hash table is small enough, the aggregation can be process with just one pass through the relation
+
+## 15.7 Evaluation of Expressions
+- `materialized`: the result of an expression is computed and stored in a temporary relation, disadvantage is that it require additional I/O to write and read the temporary relation if the result is large
+- `pipeline`: the result of an expression is computed and passed to the next operator without storing it in a temporary relation
+  
+### 15.7.1 Materialization
+- consider the following expression:
+$$\Pi_{name}(\sigma_{building="Watson"}(department)\Join instructor)$$
+![](../images/expression_visualize.png)
+- we start from the lowest level of the expression tree (which is selection on *department*)
+- the input for lowest level operator is the relation *department* in database
+- we excecute the operation and store the result in a temporary relation
+- we then use the temporary relation as input for the operations at the next level of the expression tree which input are either the temporary relation or the relation *instructor* in database
+- by repeating the process, we can evaluate the entire expression tree and get the final result
+- `materialized evaluation`: a way to evaluate an expression tree which each intermediate result is created (materialized) and then are used for the next-level operations
+- the cost of materialized evaluation is the cost of each operator plus the cost of writing and reading the intermediate result
+- because the input cost of each operator depend on the the preceding operator, whether its materialized or pipelined, so we anly account the cost of writing in the following section
+- records are first store in buffer, if the buffer is full, it is written to disk
+- the number of block transfer for ($b_r$) during writing and reading the intermediate result is $n_r/f_r$ where $n_r$ is the number of tuples in the intermediate result and $f_r$ is the number of tuples that can fit in a block
+- number of block seek is $b_r/b_b$ where $b_b$ is the number of the output buffer and can be reduced by allocate more buffer block to the output buffer
+- `Double buffering` is a technique to optimize CPU usage during I/O operations by switching the CPU to process another buffer while the current buffer is waiting for I/O to complete
+
+### 15.7.2 Pipelining
+- we can improve query evaluation by reduccing the number of intermediate result that need to be materialized and written to disk
+- we can do this by passing the result of an operator directly to the next operator, combining the evaluation of multiple operators into a *pipeline* of operators
+- evaluation as above is called `pipelined evaluation`
+- creating a pipeline of operators can provide two benefits:
+  - it eliminates the cost of reading and writing temporary relations. The cost of reading for operator $o_i$ is exclude if the output of the preceding operator $o_j$ is pipelined with $o_i$. The cost of writing for operator $o_i$ is exclude if the output of $o_i$ is pipelined with the next operator $o_k$ 
+  - early production of tuples if the root operator of the expression tree is combined in a pipeline with its inputs
+
+#### 15.7.2.1 Implementation of Pipelining
