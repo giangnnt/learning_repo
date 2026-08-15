@@ -518,3 +518,36 @@ $$\Pi_{name}(\sigma_{building="Watson"}(department)\Join instructor)$$
   - early production of tuples if the root operator of the expression tree is combined in a pipeline with its inputs
 
 #### 15.7.2.1 Implementation of Pipelining
+- we can implement pipelining by combining operators into a single operator, although this can be faster than other approaches, it is not flexible as various nature of operators and their implementation
+- it is desirable to implement pipelining in general way to reuse the code for individual operators
+- pipelining dont requires much memory for storing intermediate result or writting to them disk, however, the operations inputs are not available all at once for processing
+- pipelines can b excuted in two ways:
+  - `demand-driven pipeline`: 
+    - system make repeated calls to the root operator of the expression tree
+      - if its input operator is pipelined, it make repeated calls to the child operator, each call return a single or multiple tuples
+      - requests are propagating down to the leaf operators if possible
+      - if the input operator is not pipelined, it will wait until input operator has produced all its output tuples and then excute and return them to the root operator
+  - `producer-driven pipeline`: operations dont wait for calls from the others, they `eagerly` produce tuples and pass them to the parent operator.
+    - each operator is implemented separately, as a process or a thread (because of the eagerly, continuosly nature of operator to receiving and producing tuples), take stream of tuples as input and produce a stream of tuples as output
+- we next discuss the implementation of pipelining for demand-driven pipeline and producer-driven pipeline
+  - in demand-driven pipeline, each operation is implemented as `iterator`, which provide a standard interface with 3 methods:
+    - `open()`: `state` initialization, resource allocation, and any other necessary setup for the operator to begin processing tuples
+    - `next()`: each call to `next()` return output tuple from iterator, the iterator will maintain the state of tuples as input and produce a stream of tuples as outputf its excution so that successive calls to `next()` will return the successive output tuples
+    - `close()`: state cleanup, tell the iterator that no more tuples are needed of tuples as input and produce a stream of tuples as output
+  - in producer-driven pipeline:
+    - for each pair of adjacent operators, system allocate a buffer between them to store and retrieve tuples as 2 operators execute
+    - the bottom level operation in the pipeline continuously produce tuples into the buffer until it is full
+    - any other level operator in the pipeline generate tuples as output when it get input tuples from lower operator though buffer until its output buffer is full
+    - once the operation use a tuple from the buffer, it remove it from the buffer so that buffer have more space for future tuples
+    - when `blocking` occurs on the operator (the output buffer is full, the input buffer is empty) the system should perform a `context switch` (a process where CPU stop excuting current thread (current operator execution), save its context and switch start executing another thread)
+    - in parallel-processing, operations are excuted concurrently on distinct processors
+- demand-driven pipeline is thought as `pulling` data down from the above operators
+  - tuples are generated `lazily`
+  - demand-driven is commonly used in pipeline since it is easy to implement
+- producer-driven pipeline is thought as `pushing` data up from the below opertors
+  - tuples are generated `eagerly`
+  - producer-driven is usefull in parallel-processing since each operator executing separately and communicating through buffer 
+  - it is more efficient with modern CPU architecture, CPU cache-friendly
+    - first, it eliminates frequent function calls, avoid cache misses, also keeping the code footprint small enough to fit inside the instruction
+    - by removing inner-loop function calls, the query execution plan is compiled into a `tight loop`, enabling the JIT compiler to generate native machine code directly    
+    - lastly, reducing code size and removing indirect function calls makes execution highly *predictable*, which significantly improves CPU `branch prediction` and pipeline efficiency
