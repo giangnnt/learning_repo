@@ -551,3 +551,19 @@ $$\Pi_{name}(\sigma_{building="Watson"}(department)\Join instructor)$$
     - first, it eliminates frequent function calls, avoid cache misses, also keeping the code footprint small enough to fit inside the instruction
     - by removing inner-loop function calls, the query execution plan is compiled into a `tight loop`, enabling the JIT compiler to generate native machine code directly    
     - lastly, reducing code size and removing indirect function calls makes execution highly *predictable*, which significantly improves CPU `branch prediction` and pipeline efficiency
+
+#### 15.7.2.2 Evaluation Algorithms for Pipelining
+- `edge`: a directed data-flow channel, connecting child operator to parent operator
+- `pipelined edge`: An edge where the parent operator does not have to wait for the child operator to complete its execution before it can start processing tuples (non-blocking child).
+- `blocking edge` (Materialized edge): An edge where the parent operator must wait for the child operator to completely finish its execution and materialize its output to main-memory or disk before it can start processing tuples (blocking child).
+- two operators that are connected by a pipelined edge must be excuted concurrently since they are not synchronized, one consume tuples and the other produce tuples and not depend on each other
+- a plan can have multiple pipelined edges, the set of operators that are connected by a pipelined edges must be excuted concurrently
+- a query plan can be devided into subtree called `pipeline stage`, each subtree only contain pipelined edges, the edge between subtree is non-pipelined
+- the query processor executes one pipeline stage at a time and concurrently excute all operators in that pipeline stage
+- some operations such as: **group by**, **sort**,... are natually `blocking operations` since they require all their input tuples to be examined before they can produce output tuples
+- but blocking operators don't have to consume all the tuples from the input nor produce all the tuples to the output all at once, they can consume and produce tuples in a pipelined way
+- the blocking is actually happen between the phase of input consume
+- we can implement blocking operators as follows, we first devide blocking operator into 2 sub operators, they are belong to different pipeline stages which are connected by a non-pipelined edge
+- some operations are not naturally blocking but specific evaluation algorithms make them blocking, for examples:
+  - index nested loop join having the left-hand side (receive tuples from the outer relation) is non-blocking but the right-hand side (index constructing for the inner relation) is blocking since it needs to be fully constructed before the join can execute
+  - hash join can be devide into 3 sub operators
