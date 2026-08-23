@@ -1728,7 +1728,9 @@ $$ R1 -> R2 -> R3 -> R4 -> R5 $$
     + `Shared Read`: number of blocks is read from disk
     + `Shared Dirtied`: number of blocks is modified in the buffer
     + `Shared Written`: number of blocks is written to disk for to free up buffer space
-$$CacheRatio = \frac{\text{ShareHit}}{\text{ShareHit} + \text{SharedRead}} \times 100\$$
+$$
+CacheRatio = \frac{\text{ShareHit}}{\text{ShareHit} + \text{SharedRead}} \times 100\
+$$
 - in **concurrency environment**: if a **request is delayed** cause other block is **locked** by another transaction, **buffer manager** can consider **evicting the other non-locked** block of the needed by the **delayed request**
 
 ### 13.5.3 Reordering of Writes and Recovery

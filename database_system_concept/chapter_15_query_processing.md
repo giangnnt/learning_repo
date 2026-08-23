@@ -565,5 +565,52 @@ $$\Pi_{name}(\sigma_{building="Watson"}(department)\Join instructor)$$
 - the blocking is actually happen between the phase of input consume
 - we can implement blocking operators as follows, we first devide blocking operator into 2 sub operators, they are belong to different pipeline stages which are connected by a non-pipelined edge
 - some operations are not naturally blocking but specific evaluation algorithms make them blocking, for examples:
-  - index nested loop join having the left-hand side (receive tuples from the outer relation) is non-blocking but the right-hand side (index constructing for the inner relation) is blocking since it needs to be fully constructed before the join can execute
+  - index nested loop join can be devide into 2 sub operators
+    -  the left-hand side (receive tuples from the outer relation) is non-blocking 
+    -  the right-hand side (index constructing for the inner relation) is blocking since it needs to be fully constructed before the join can execute
+    - when starting to join, the output can be produced in a pipelined way
   - hash join can be devide into 3 sub operators
+    - 2 operators partitioning 2 input relations can be pipelined
+    - the build and probe can also be executed in a pipelined way as we can executed for each partition separately
+    - the blocking is that the build and probe can only be executed when the partitions is fully constructed
+  - hybrid hash join can be viewed as partialy pipelined operations 
+    - it archieve fully pipelined or nearly pipelined if all the tuples fit in the first partition or nearly all of tuples fit in the first partition 
+ 
+![](../images/query_and_pipelining_plan.png)
+- the above figure is a simple example of pipelined plan of hash join algorithm
+  - the pipelined edge is represented with normal line and the non-pipelined edge is represented with bold line
+  - pipeline stage are enclosed with dashed rectagle
+- each materialization cost is included in the cost of the operator (for example of merge-sort) so it should not be added again
+- if both insput are sorted, the merge join can be used, making both its input and its output pipelined
+- incase two input are not sorted, we can use a alternative algorithm called `double-pipelined join`, the detail algorithm is as follows:
+  - define 2 queues for each input relation
+  - for each tuples from 2 relation, add it to the corresponding queue (also index or hash structure for that queue) 
+  - scan other queue (using index or hash build previously) to find tuples that satisfy the join condition
+  - output tuples in a pipelined way until the end of both relations
+- double pipeline join perform best when both inputs are fits in memory but it can be used for case when they are larger as well
+  - when memory is full, incoming tuples are join with current index and queue structure and produce pipelined tuples as normal but they are not added to the queue nor the index
+  - instead, they are written to memory as $r_1$ ans $s_1$ partition respectively
+  - after all coming tuples are processed, we then fetch the tuples from $r_1$ and $s_1$ and join them to complete the join and produce pipelined tuples
+
+### 15.7.3 Pipelines for Continuos-Stream Data
+- `continous query` is a query written to respond data as they arrive from a *data streams*
+- to implement a query that is continous, we must use a pipelined algorithm, and the best suited is `producer-driven pipeline`
+- query using `tumbling window` to devide time into fixed size and then perform to perform query
+- the problem is if the incomming tuples are not sorted by time, we dont know whether to close the window as data might take some time from source to reach the query processing (delayed data)
+- to solve the problem, we insert a `punctuation tuple` $t_p$ guarentee that all the tuples that comming behind $t_p$ will have the timestamp greater than some specified timestamp value
+
+## 15.8 Query Processing in Memory
+| | L1 | L2 | L3 |
+| --- | --- | --- | --- |
+|Size| 64KB | 256KB | 10MB |
+|Latency| 1ns | 10ns - 15ns | 100ns |
+> typical size and speed of cache levels
+
+- despite the similar in speed difference between CPU Cache - RAM and RAM - Disk, how we approach the problem of query processing in memory is different as we cant control what will be kept in the cache or in general, we cant control how CPU Cache is managed (CPU managed by hardware level programs)
+- however, we can designed a `Hardware-aware Software` to make the best use of cache and improve performance,
+- we keep in mind that below techniques is not alter the algorithm but a abstracted layer to improve the performance below is ways this can be done
+  - to sort a relation that is already in memory, we can use external sort-merge with the run size chosen such that each run fits in the CPU cache (e.g., L3 cache) → reduce cache misses when sorting each run.
+    - merging is cache-efficient because the CPU fetches data from memory in cache lines. When it accesses a *word* in a run, the entire cache line containing that word is fetched, including nearby words that are likely to be accessed next during the merge.
+    - to sort a relation that is larger than memory, we use the larger runs but to sort that larger run we can use the technique we discussed previously
+  - hash-join can improve cache miss during build and probe phase by partitioning the relations into smaller pieces that fit in the cache along with its index
+  - attribute values can be stored consecutively in memory, so when the CPU fetches a cache line, values of the same attribute are likely to be loaded together, which is beneficial for operations such as GROUP BY.
