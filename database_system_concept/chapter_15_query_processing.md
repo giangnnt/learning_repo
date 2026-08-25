@@ -614,3 +614,17 @@ $$\Pi_{name}(\sigma_{building="Watson"}(department)\Join instructor)$$
     - to sort a relation that is larger than memory, we use the larger runs but to sort that larger run we can use the technique we discussed previously
   - hash-join can improve cache miss during build and probe phase by partitioning the relations into smaller pieces that fit in the cache along with its index
   - attribute values can be stored consecutively in memory, so when the CPU fetches a cache line, values of the same attribute are likely to be loaded together, which is beneficial for operations such as GROUP BY.
+- cache-aware algorithm are increasing importance since in modern DBMS, memory size is larger so that many data is memory-resident
+- if a CPU cache miss causes one thread to stall, another thread can use the CPU's execution resources to keep the core utilized
+
+### 15.8.2 Query Complication
+- as data increasingly resides in-memory, shifting the performance bottleneck directly to CPU efficiency
+- traditional DBMS query execution engines rely on interpreters, which introduce severe CPU overhead due to
+  - abstraction & metadata overhead: repeatedly evaluating generic logic, checking data types, and looking up record metadata/offsets dynamically at runtime for every processed tuple.
+  - pipeline inefficiency: frequent function calls per tuple lead to high Instruction Cache misses and severe branch mispredictions
+- to reduce the overhead of interpreters, modern DBMS convert query into machine code or intermediate level byte-code
+- for example, instead of dynamically looking up attribute offsets for every single tuple at runtime, the query compiler calculates the offsets once during compilation and bakes them directly as immediate constants into the generated machine code
+- compiler can also combine code for multiple calling function into a tightloop $\rightarrow$ minimize function calls
+
+### 15.8.3 Column-Oriented Storage
+- columnar storage are well suited for vector processing of modern CPUs, making certain operations like compare or aggregate perform in a parallel for multiple values for that attribute
